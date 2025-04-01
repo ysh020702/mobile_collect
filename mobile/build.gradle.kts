@@ -64,6 +64,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.11.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-database")
 
     //samsung health "sensor" SDK(not samsung Health Data SDK)
     implementation(files("libs/samsung-health-sensor-api-v1.3.0.aar"))

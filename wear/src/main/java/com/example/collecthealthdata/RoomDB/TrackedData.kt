@@ -10,7 +10,7 @@ data class TrackedData(
     @ColumnInfo(name = "userId") var userId: Int = -1, //TODO: 외래키 설정할 것
     @ColumnInfo(name = "TimeStamp")var TimeStamp: Int = 0,
     @ColumnInfo(name = "HeartRate")var HeartRate: Int = 0,
-    @ColumnInfo(name = "SpO2")var SpO2: Int = 0,
+    @ColumnInfo(name = "SpO2")var SpO2: Int = 0, //Set -> Int
     @ColumnInfo(name = "SkinTemperature")var SkinTemperature: Int = 0
     //var ECG
     //var PPG
