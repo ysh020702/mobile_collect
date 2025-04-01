@@ -16,7 +16,6 @@ android {
         versionName = "1.0"
 
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -57,6 +56,9 @@ dependencies {
     implementation(libs.androidx.watchface.complications.data.source.ktx)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime.android)
+
+    //samsung health "sensor" SDK(not samsung Health Data SDK)
+    implementation(files("libs/samsung-health-sensor-api-v1.3.0.aar"))
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
