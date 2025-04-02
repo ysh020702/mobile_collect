@@ -1,13 +1,13 @@
-package com.example.collecthealthdata
+package com.example.collecthealthdata.ui
 
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -33,14 +32,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.room.Room
 import com.example.collecthealthdata.ui.theme.CollectHealthDataTheme
+import com.example.collecthealthdata.user.User
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.database
 
 class AuthActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     private var context = this.baseContext
+    private lateinit var database: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,7 +76,9 @@ class AuthActivity : ComponentActivity() {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(TAG, "createUserWithEmail:success")
                     val user = auth.currentUser
+                    registerUser(user)
                     updateUI(user)
+
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "createUserWithEmail:failure", task.exception)
@@ -82,7 +87,6 @@ class AuthActivity : ComponentActivity() {
                         "Authentication failed.",
                         Toast.LENGTH_SHORT,
                     ).show()
-                    //updateUI(null)
                 }
             }
     }
@@ -109,19 +113,36 @@ class AuthActivity : ComponentActivity() {
             }
     }
 
+    //register A User Into Firebase Database
+    private fun registerUser(user: FirebaseUser?){
+        if (user == null) return
+        //프로젝트에 있는 유저 인스턴스
+        val userInstance = User(id = user.uid.toString(), email = user.email.toString())
+
+        //firebase_database_reference
+        database = Firebase.database.reference
+
+        //user -> userID -> user Data 저장
+        database.child("users").child(userInstance.id).setValue(userInstance)
+        Log.d(TAG, "registerUser, User 저장 완료")
+    }
+
+    //going To mainActivity
     private fun updateUI(user: FirebaseUser?){
-        if(user != null){
-            //MainActivity로 넘어가는 로직, FirebaseUser를 인텐트로 받아서
-            val intent = Intent(context, MainActivity::class.java).apply {
-                putExtra("USER_EMAIL", user.email)
-                putExtra("USER_UID", user.uid)
-            }
-            startActivity(intent)
-            finish() // 현재 액티비티 종료
+        if(user == null){
+            Log.d(TAG, "유저 정보 받아오기 실패")
+            Toast.makeText(context, "유저 정보 받아오기 실패", Toast.LENGTH_SHORT).show()
             return
         }
-        Log.d(TAG, "유저 정보 받아오기 실패")
-        Toast.makeText(context, "유저 정보 받아오기 실패", Toast.LENGTH_SHORT).show()
+
+        //MainActivity로 넘어가는 로직, FirebaseUser를 인텐트로 받아서
+        val intent = Intent(context, MainActivity::class.java).apply {
+            putExtra("USER_ID", user.uid.toString())
+        }
+        startActivity(intent)
+        finish() // 현재 액티비티 종료
+        return
+
     }
 
 }
@@ -190,7 +211,7 @@ fun LoginScreen(onLoginClick: (String, String) -> Unit, onSignupClick: (String, 
 
 // 이메일 검증 함수
 fun isValidEmail(email: String): Boolean {
-    return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    return Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }
 fun isValidPw(pw:String):Boolean {
     return pw.isNotEmpty()
