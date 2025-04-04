@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -54,8 +55,7 @@ dependencies {
     implementation(libs.horologist.compose.tools)
     implementation(libs.horologist.tiles)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.runtime.android)
+
 
     //samsung health "sensor" SDK(not samsung Health Data SDK)
     implementation(files("libs/samsung-health-sensor-api-v1.3.0.aar"))
@@ -64,4 +64,16 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.androidx.tiles.tooling)
+
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.runtime.android)
+    ksp("androidx.room:room-compiler:2.6.1")
+
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
+
+    // Coroutine
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }
