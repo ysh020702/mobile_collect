@@ -11,7 +11,7 @@ interface TrackedDataDao {
     suspend fun insert(data: TrackedDataEntity)
 
     @Query("SELECT * FROM tracked_data ORDER BY timestamp DESC")
-    suspend fun getAll(): Flow<List<TrackedDataEntity>>
+    fun getAll(): Flow<List<TrackedDataEntity>>
 
     @Query("DELETE FROM tracked_data")
     suspend fun deleteAll()

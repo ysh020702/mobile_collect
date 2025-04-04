@@ -14,7 +14,7 @@ class TrackedDataRepositoryImpl (
     override suspend fun insert(trackedData: TrackedData){
         dao.insert(trackedData.toEntity())
     }
-    override suspend fun getAll(): Flow<List<TrackedData>>{
+    override fun getAll(): Flow<List<TrackedData>>{
         return dao.getAll().map{ list -> list.map{ it.toDomain()}}
     }
     override suspend fun deleteAll(){

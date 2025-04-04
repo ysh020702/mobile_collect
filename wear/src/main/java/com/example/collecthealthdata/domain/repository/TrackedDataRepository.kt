@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface TrackedDataRepository {
     suspend fun insert(trackedData: TrackedData)
-    suspend fun getAll(): Flow<List<TrackedData>>
+    fun getAll(): Flow<List<TrackedData>>
     suspend fun deleteAll()
 }
 
