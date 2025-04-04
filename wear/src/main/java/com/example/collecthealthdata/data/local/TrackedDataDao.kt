@@ -1,0 +1,18 @@
+package com.example.collecthealthdata.data.local
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface TrackedDataDao {
+    @Insert
+    suspend fun insert(data: TrackedDataEntity)
+
+    @Query("SELECT * FROM tracked_data ORDER BY timestamp DESC")
+    suspend fun getAll(): Flow<List<TrackedDataEntity>>
+
+    @Query("DELETE FROM tracked_data")
+    suspend fun deleteAll()
+}
