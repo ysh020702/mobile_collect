@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import com.example.collecthealthdata.R
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.collecthealthdata.ui.model.MainViewModel
 import com.example.collecthealthdata.ui.screen.MainScreen
+import com.example.collecthealthdata.ui.screen.Permission
 import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "MainActivity"
