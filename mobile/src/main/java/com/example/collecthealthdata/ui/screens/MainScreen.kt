@@ -42,7 +42,7 @@ fun MainScreen(context: Context, user: User) {
                 }
                 Spacer(modifier = Modifier.width(8.dp)) // 버튼 간격
                 Button(onClick = {
-                    val user = FirebaseAuth.getInstance().currentUser
+                    /*val user = FirebaseAuth.getInstance().currentUser
 
                     user?.delete()
                         ?.addOnCompleteListener { task ->
@@ -61,7 +61,7 @@ fun MainScreen(context: Context, user: User) {
                                 Log.w("AccountDelete", "계정 삭제 실패", task.exception)
                                 Toast.makeText(context, "계정 삭제에 실패했습니다.", Toast.LENGTH_SHORT).show()
                             }
-                        }
+                        }*/
                 }) {
                     Text("계정 삭제")
                 }
