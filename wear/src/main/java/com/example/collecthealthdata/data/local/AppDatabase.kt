@@ -6,10 +6,9 @@ import androidx.room.TypeConverters
 
 @Database(
     entities = [TrackedDataEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
-@TypeConverters
 abstract class AppDatabase : RoomDatabase() {
     abstract fun trackedDataDao(): TrackedDataDao
 }

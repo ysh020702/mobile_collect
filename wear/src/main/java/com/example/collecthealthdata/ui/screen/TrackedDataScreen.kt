@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.ui.screen.tracked
+package com.example.collecthealthdata.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,11 +11,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.*
 import com.example.collecthealthdata.domain.model.TrackedData
-import com.example.collecthealthdata.ui.screen.tracked.components.TrackedDataItem
+import com.example.collecthealthdata.ui.screen.components.TrackedDataItem
+import com.example.collecthealthdata.ui.model.MainViewModel
 
 @Composable
 fun TrackedDataScreen(
-    viewModel: TrackedDataViewModel = viewModel()
+    viewModel: MainViewModel = viewModel()
 ) {
     val trackedDataList by viewModel.trackedData.collectAsState()
 

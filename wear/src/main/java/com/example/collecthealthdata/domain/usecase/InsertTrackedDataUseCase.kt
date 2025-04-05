@@ -1,13 +1,13 @@
 package com.example.collecthealthdata.domain.usecase
 
-import com.example.collecthealthdata.domain.model.TrackedData
+import com.example.collecthealthdata.data.local.TrackedDataEntity
 import com.example.collecthealthdata.domain.repository.TrackedDataRepository
 import javax.inject.Inject
 
-class SaveTrackedDataUseCase @Inject constructor(
+class InsertTrackedDataUseCase @Inject constructor(
     private val repository: TrackedDataRepository
 ) {
-    suspend operator fun invoke(data: TrackedData) {
+    suspend operator fun invoke(data: TrackedDataEntity) {
         repository.insert(data)
     }
 }

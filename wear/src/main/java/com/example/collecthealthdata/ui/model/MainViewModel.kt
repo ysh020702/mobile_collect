@@ -1,11 +1,12 @@
-package com.example.collecthealthdata.ui.screen.tracked
+package com.example.collecthealthdata.ui.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.collecthealthdata.domain.model.TrackedData
 import com.example.collecthealthdata.domain.usecase.DeleteAllTrackedDataUseCase
 import com.example.collecthealthdata.domain.usecase.GetTrackedDataUseCase
-import com.example.collecthealthdata.domain.usecase.SaveTrackedDataUseCase
+import com.example.collecthealthdata.domain.usecase.InsertTrackedDataUseCase
+import com.samsung.android.service.health.tracking.HealthTrackerException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +15,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TrackedDataViewModel @Inject constructor(
-    private val saveTrackedDataUseCase: SaveTrackedDataUseCase,
+class MainViewModel @Inject constructor(
+    private val insertTrackedDataUseCase: InsertTrackedDataUseCase,
     private val getTrackedDataUseCase: GetTrackedDataUseCase,
     private val deleteAllTrackedDataUseCase: DeleteAllTrackedDataUseCase
 ): ViewModel() {
@@ -36,7 +37,8 @@ class TrackedDataViewModel @Inject constructor(
 
     fun insertTrackedData(data: TrackedData) {
         viewModelScope.launch {
-            saveTrackedDataUseCase(data)
+            //HR 데이터 String 으로 만들어서 저장하기
+            TODO()
         }
     }
 
@@ -47,3 +49,17 @@ class TrackedDataViewModel @Inject constructor(
     }
 
 }
+
+data class ConnectionState(
+    val connected: Boolean,
+    val message: String,
+    val connectionException: HealthTrackerException?
+)
+
+data class TrackingState(
+    val trackingRunning: Boolean,
+    val trackingError: Boolean,
+    val valueHR: String,
+    val valueIBI: ArrayList<Int>,
+    val message: String
+)

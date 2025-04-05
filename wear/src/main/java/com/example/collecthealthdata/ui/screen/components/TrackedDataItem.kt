@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.ui.screen.tracked.components
+package com.example.collecthealthdata.ui.screen.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable

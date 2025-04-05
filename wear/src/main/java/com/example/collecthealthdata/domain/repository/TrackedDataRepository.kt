@@ -1,11 +1,12 @@
 package com.example.collecthealthdata.domain.repository
 
+import com.example.collecthealthdata.data.local.TrackedDataEntity
 import com.example.collecthealthdata.domain.model.TrackedData
 import kotlinx.coroutines.flow.Flow
 
 interface TrackedDataRepository {
-    suspend fun insert(trackedData: TrackedData)
-    fun getAll(): Flow<List<TrackedData>>
+    suspend fun insert(entity: TrackedDataEntity)
+    fun getAll(): Flow<List<TrackedDataEntity>>
     suspend fun deleteAll()
 }
 
