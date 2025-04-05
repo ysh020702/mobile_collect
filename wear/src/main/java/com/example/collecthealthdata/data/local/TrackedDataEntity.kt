@@ -2,9 +2,9 @@ package com.example.collecthealthdata.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
-import com.example.collecthealthdata.domain.model.TrackedData
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(tableName = "tracked_data")
 data class TrackedDataEntity (
     @PrimaryKey(autoGenerate = true)

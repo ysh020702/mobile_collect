@@ -23,15 +23,15 @@ private val wearColorPalette = Colors(
 )
 
 // 기본 타이포그래피
-private val wearTypography = Typography()
+private val typography = Typography()
 
 @Composable
-fun WearAppTheme(
+fun DataCollectTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
         colors = wearColorPalette,
-        typography = wearTypography,
+        typography = typography,
         content = content
     )
 }
