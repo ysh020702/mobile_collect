@@ -12,6 +12,5 @@ class InsertTrackedDataUseCase @Inject constructor(
     }
 }
 
-
 //Repository 에 종속되는 클래스임(특히 이건 TrackedDataRepository에 -> 매개변수로 받아서 repository 의 기능을 사용함
 // -> 기능 추가가 쉬움!! 이게 DI(Dependency Injection)

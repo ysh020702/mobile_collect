@@ -26,9 +26,16 @@ fun MainScreen(
     valueIBI: ArrayList<Int>,
     onStart: () -> Unit,
     onStop: () -> Unit,
-    onSend: () -> Unit
+    onSend: () -> Unit,
+    stopSignal: Boolean
 ) {
     Log.i(TAG, "MainScreen Composable")
+
+    LaunchedEffect(stopSignal) {
+        if (stopSignal) {
+            onStop()
+        }
+    }
 
     DataCollectTheme {
         Box(
@@ -49,6 +56,7 @@ fun MainScreen(
                 )
 
                 // 실제 심박수 값
+                // 아이디어 - 40개 다 측정될 때까지 퍼센테이지로 진행도 보여주기
                 Text(
                     text = valueHR,
                     fontSize = 42.sp,
@@ -59,7 +67,12 @@ fun MainScreen(
                 // 측정 시작/중지 버튼
                 Button(
                     onClick = {
-                        if (trackingRunning) onStop() else onStart()
+                        //측정이 자동으로 중지되도록 해야 함
+                        if (trackingRunning) onStop()
+                        else {
+                            onStart()
+
+                        }
                     },
                     enabled = connected,
                     modifier = Modifier

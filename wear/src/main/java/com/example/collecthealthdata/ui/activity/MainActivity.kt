@@ -31,6 +31,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val trackingState by viewModel.trackingState.collectAsStateWithLifecycle()
             val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
+            val stopSignal by viewModel.stopSignal.collectAsStateWithLifecycle()
             if (trackingState.trackingRunning) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             } else {
@@ -63,7 +64,9 @@ class MainActivity : ComponentActivity() {
                     trackingState.valueIBI,
                     { viewModel.startTracking(); Log.i(TAG, "startTracking()") },
                     { viewModel.stopTracking(); Log.i(TAG, "stopTracking()") },
-                    { viewModel.sendMessage(); Log.i(TAG, "sendMessage()") })
+                    { viewModel.sendMessage(); Log.i(TAG, "sendMessage()") },
+                    stopSignal
+                )
             }
         }
     }

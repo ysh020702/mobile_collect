@@ -3,6 +3,7 @@ package com.example.collecthealthdata.ui.model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.collecthealthdata.data.local.TrackedDataEntity
 import com.example.collecthealthdata.data.repository.ConnectionMessage
 import com.example.collecthealthdata.data.repository.TrackerMessage
 import com.example.collecthealthdata.domain.model.TrackedData
@@ -16,6 +17,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlin.compareTo
 import kotlin.toString
@@ -32,8 +35,7 @@ class MainViewModel @Inject constructor(
     private val getTrackedDataUseCase: GetTrackedDataUseCase,
     private val deleteAllTrackedDataUseCase: DeleteAllTrackedDataUseCase
 ): ViewModel() {
-
-
+    //Set up Our Invironment
     private val _messageSentToast = MutableSharedFlow<Boolean>()
     val messageSentToast = _messageSentToast.asSharedFlow()
 
@@ -53,6 +55,18 @@ class MainViewModel @Inject constructor(
         MutableStateFlow(ConnectionState(connected = false, message = "", null))
     val connectionState: StateFlow<ConnectionState> = _connectionState
 
+
+    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    private var hrList = ArrayList<Int>()
+    private lateinit var startTime: LocalDateTime
+    private var endTime: LocalDateTime? = null
+    private val _stopSignal = MutableStateFlow(false)
+    val stopSignal: StateFlow<Boolean> = _stopSignal
+
+
+
+
+
     @Inject
     lateinit var trackingUseCase: TrackingUseCase
 
@@ -60,7 +74,7 @@ class MainViewModel @Inject constructor(
     private var currentIBI = ArrayList<Int>(4)
 
     fun stopTracking() {
-        stopTrackingUseCase()
+        stopTrackingUseCase() //이건 listener unset 밖에 없다
         trackingJob?.cancel()
         _trackingState.value = TrackingState(
             trackingRunning = false,
@@ -108,8 +122,8 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    //TODO: SendMessage -> 실행 조건 바꾸기!!! SEND 버튼 눌렀을 때로!! ROOM에서 있는 데이터베이스가 맞는지 확인
     fun sendMessage() {
+        //TODO: SendMessage -> 실행 조건 바꾸기!!! SEND 버튼 눌렀을 때로!! ROOM에서 있는 데이터베이스가 맞는지 확인
         viewModelScope.launch {
             if (sendMessageUseCase()) {
                 _messageSentToast.emit(true)
@@ -120,12 +134,19 @@ class MainViewModel @Inject constructor(
     }
 
     private fun processExerciseUpdate(trackedData: TrackedData) {
-
+        //TODO: 여기가 실제 TrackedData처리되는 구간!! 여기서 데이터베이스 넣는 로직
+        //TrackedData- Domain.Model.TrackedData
+        //HRString에 쌓인 값이 40개가 되면 특정 값을 리턴시켜서 MainScreen 에서 onStop이 실행되게 헤야 함
         val hr = trackedData.hr
         val ibi = trackedData.ibi
         Log.i(TAG, "last HeartRate: $hr, last IBI: $ibi")
         currentHR = hr.toString()
         currentIBI = ibi
+
+        // HR 값 누적 저장 (정상값만)
+        if (hr > 0) {
+            hrList.add(hr)
+        }
 
         _trackingState.value = TrackingState(
             trackingRunning = true,
@@ -134,7 +155,29 @@ class MainViewModel @Inject constructor(
             valueIBI = ibi,
             message = ""
         )
+
+        if (hrList.size >= 40) {
+            //데이터를 저장
+            endTime = LocalDateTime.now()
+            val trackedEntity = TrackedDataEntity(
+                hrDataString = hrList.joinToString(","), // e.g. "75,77,80,..."
+                //ibiDataString = currentIBI.joinToString(","), //
+                startTime = startTime.toString(),
+                endTime = endTime.toString()
+            )
+
+            saveDataAndStop(trackedEntity)
+        }
     }
+
+    private fun saveDataAndStop(entity: TrackedDataEntity) {
+        viewModelScope.launch {
+            insertTrackedDataUseCase(entity)
+            hrList.clear()
+            _stopSignal.value = true
+        }
+    }
+
 
     private var trackingJob: Job? = null
 
@@ -143,9 +186,16 @@ class MainViewModel @Inject constructor(
         Log.i(TAG, "startTracking()")
         if (areTrackingCapabilitiesAvailableUseCase()) {
             trackingJob = viewModelScope.launch {
+                //측정 시작 시간 저장 및 HRlist초기화
+                startTime = LocalDateTime.now()
+                hrList = ArrayList<Int>()
+
                 trackingUseCase().collect { trackerMessage ->
                     when (trackerMessage) {
+                        //여기서부터 실제 트래킹 시작, 한 데이터포인트마다 trackerMessage가 들어옴
+                        
                         is TrackerMessage.DataMessage -> {
+                            //제대로 들어온 데이터이면
                             processExerciseUpdate(trackerMessage.trackedData)
                             Log.i(TAG, "TrackerMessage.DataReceivedMessage")
                         }
@@ -195,9 +245,6 @@ class MainViewModel @Inject constructor(
             )
         }
     }
-
-
-
 }
 
 data class ConnectionState(

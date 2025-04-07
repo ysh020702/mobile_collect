@@ -7,6 +7,7 @@ import com.example.collecthealthdata.domain.usecase.*
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Wearable
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,7 +23,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    @Provides
+
     fun provideInsertTrackedDataUseCase(
         repository: TrackedDataRepository
     ): InsertTrackedDataUseCase {
