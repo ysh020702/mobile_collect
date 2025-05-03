@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
+import kotlin.collections.isNotEmpty
 
 private const val TAG = "SendMessageUseCase"
 private const val MESSAGE_PATH = "/msg"

@@ -1,6 +1,9 @@
 package com.example.collecthealthdata.di
 
 import android.content.Context
+import androidx.room.Room
+import com.example.collecthealthdata.data.local.AppDatabase
+import com.example.collecthealthdata.data.local.TrackedDataDao
 import com.example.collecthealthdata.data.repository.*
 import com.example.collecthealthdata.domain.repository.*
 import com.example.collecthealthdata.domain.usecase.*
@@ -23,7 +26,29 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "tracked_data_db"
+        ).build()
+    }
 
+    @Provides
+    fun provideTrackedDataDao(db: AppDatabase): TrackedDataDao {
+        return db.trackedDataDao()
+    }
+
+    @Provides
+    fun provideTrackedDataRepository(
+        dao: TrackedDataDao
+    ): TrackedDataRepository {
+        return TrackedDataRepositoryImpl(dao)
+    }
+
+    @Provides
     fun provideInsertTrackedDataUseCase(
         repository: TrackedDataRepository
     ): InsertTrackedDataUseCase {

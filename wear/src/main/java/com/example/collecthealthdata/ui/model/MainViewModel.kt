@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -58,13 +59,10 @@ class MainViewModel @Inject constructor(
 
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     private var hrList = ArrayList<Int>()
-    private lateinit var startTime: LocalDateTime
+    private var startTime: LocalDateTime? = null
     private var endTime: LocalDateTime? = null
     private val _stopSignal = MutableStateFlow(false)
     val stopSignal: StateFlow<Boolean> = _stopSignal
-
-
-
 
 
     @Inject
@@ -156,7 +154,9 @@ class MainViewModel @Inject constructor(
             message = ""
         )
 
-        if (hrList.size >= 40) {
+        val now = LocalDateTime.now()
+        val duration = Duration.between(startTime, now)
+        if (duration.seconds >= 30) {
             //데이터를 저장
             endTime = LocalDateTime.now()
             val trackedEntity = TrackedDataEntity(

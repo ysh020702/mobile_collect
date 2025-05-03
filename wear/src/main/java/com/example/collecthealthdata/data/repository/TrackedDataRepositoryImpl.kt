@@ -5,8 +5,9 @@ import com.example.collecthealthdata.data.local.TrackedDataEntity
 
 import com.example.collecthealthdata.domain.repository.TrackedDataRepository
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class TrackedDataRepositoryImpl (
+class TrackedDataRepositoryImpl @Inject constructor(
     private val dao: TrackedDataDao
 ): TrackedDataRepository{
     override suspend fun insert(entity: TrackedDataEntity){
