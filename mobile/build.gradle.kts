@@ -68,4 +68,6 @@ dependencies {
 
     //samsung health "sensor" SDK(not samsung Health Data SDK)
     implementation(files("libs/samsung-health-sensor-api-v1.3.0.aar"))
+
+    implementation ("com.google.android.gms:play-services-wearable:19.0.0")
 }
