@@ -31,6 +31,19 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true" />
+
+        <service
+            android:name=".data.DataListenerService"
+            android:exported="true"
+            android:permission="com.google.android.gms.permission.BIND_LISTENER">
+
+            <intent-filter>
+                <!-- 메시지 수신을 위한 인텐트 필터 -->
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/msg" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

@@ -50,6 +50,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.foundation)
+    // For integration between Wear Compose and Androidx Navigation libraries
+    implementation("androidx.wear.compose:compose-navigation:1.2.1")
+    // For Wear preview annotations
+    implementation("androidx.wear.compose:compose-ui-tooling:1.2.1")
     implementation(libs.androidx.wear.tooling.preview)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)

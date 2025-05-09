@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.collecthealthdata.data.repository
+package com.example.collecthealthdata.domain.repositoryimpl
 
 import android.content.Context
 import android.util.Log

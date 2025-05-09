@@ -1,13 +1,16 @@
-package com.example.collecthealthdata.ui.model
+package com.example.collecthealthdata.ui
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.collecthealthdata.data.local.TrackedDataEntity
-import com.example.collecthealthdata.data.repository.ConnectionMessage
-import com.example.collecthealthdata.data.repository.TrackerMessage
-import com.example.collecthealthdata.domain.model.TrackedData
+import com.example.collecthealthdata.domain.repositoryimpl.ConnectionMessage
+import com.example.collecthealthdata.domain.repositoryimpl.TrackerMessage
+import com.example.collecthealthdata.data.TrackedData
 import com.example.collecthealthdata.domain.usecase.*
+import com.example.collecthealthdata.domain.usecase.roomDB.DeleteAllTrackedDataUseCase
+import com.example.collecthealthdata.domain.usecase.roomDB.GetTrackedDataUseCase
+import com.example.collecthealthdata.domain.usecase.roomDB.InsertTrackedDataUseCase
 import com.samsung.android.service.health.tracking.HealthTrackerException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -15,13 +18,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import kotlin.compareTo
 import kotlin.toString
 
 private const val TAG = "MainViewModel"
@@ -62,6 +63,7 @@ class MainViewModel @Inject constructor(
     private var startTime: LocalDateTime? = null
     private var endTime: LocalDateTime? = null
     private val _stopSignal = MutableStateFlow(false)
+    private val TRACKING_DURATION_LIMIT = 30
     val stopSignal: StateFlow<Boolean> = _stopSignal
 
 
@@ -131,56 +133,8 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun processExerciseUpdate(trackedData: TrackedData) {
-        //TODO: 여기가 실제 TrackedData처리되는 구간!! 여기서 데이터베이스 넣는 로직
-        //TrackedData- Domain.Model.TrackedData
-        //HRString에 쌓인 값이 40개가 되면 특정 값을 리턴시켜서 MainScreen 에서 onStop이 실행되게 헤야 함
-        val hr = trackedData.hr
-        val ibi = trackedData.ibi
-        Log.i(TAG, "last HeartRate: $hr, last IBI: $ibi")
-        currentHR = hr.toString()
-        currentIBI = ibi
-
-        // HR 값 누적 저장 (정상값만)
-        if (hr > 0) {
-            hrList.add(hr)
-        }
-
-        _trackingState.value = TrackingState(
-            trackingRunning = true,
-            trackingError = false,
-            valueHR = if (hr > 0) hr.toString() else "-",
-            valueIBI = ibi,
-            message = ""
-        )
-
-        val now = LocalDateTime.now()
-        val duration = Duration.between(startTime, now)
-        if (duration.seconds >= 30) {
-            //데이터를 저장
-            endTime = LocalDateTime.now()
-            val trackedEntity = TrackedDataEntity(
-                hrDataString = hrList.joinToString(","), // e.g. "75,77,80,..."
-                //ibiDataString = currentIBI.joinToString(","), //
-                startTime = startTime.toString(),
-                endTime = endTime.toString()
-            )
-
-            saveDataAndStop(trackedEntity)
-        }
-    }
-
-    private fun saveDataAndStop(entity: TrackedDataEntity) {
-        viewModelScope.launch {
-            insertTrackedDataUseCase(entity)
-            hrList.clear()
-            _stopSignal.value = true
-        }
-    }
-
 
     private var trackingJob: Job? = null
-
     fun startTracking() {
         trackingJob?.cancel()
         Log.i(TAG, "startTracking()")
@@ -192,8 +146,7 @@ class MainViewModel @Inject constructor(
 
                 trackingUseCase().collect { trackerMessage ->
                     when (trackerMessage) {
-                        //여기서부터 실제 트래킹 시작, 한 데이터포인트마다 trackerMessage가 들어옴
-                        
+                        //여기서부터 실제 트래킹 시작, 한 데이터포인트마다 trackerMessage가 들어
                         is TrackerMessage.DataMessage -> {
                             //제대로 들어온 데이터이면
                             processExerciseUpdate(trackerMessage.trackedData)
@@ -245,7 +198,56 @@ class MainViewModel @Inject constructor(
             )
         }
     }
+
+    private fun processExerciseUpdate(trackedData: TrackedData) {
+        //TODO: 여기가 실제 TrackedData처리되는 구간!! 여기서 데이터베이스 넣는 로직
+        //TrackedData- Domain.Model.TrackedData
+        //HRString에 쌓인 값이 40개가 되면 특정 값을 리턴시켜서 MainScreen 에서 onStop이 실행되게 헤야 함
+        val hr = trackedData.hr
+        val ibi = trackedData.ibi
+        Log.i(TAG, "last HeartRate: $hr, last IBI: $ibi")
+        currentHR = hr.toString()
+        currentIBI = ibi
+
+        // HR 값 누적 저장 (정상값만)
+        if (hr > 0) {
+            hrList.add(hr)
+        }
+
+        _trackingState.value = TrackingState(
+            trackingRunning = true,
+            trackingError = false,
+            valueHR = if (hr > 0) hr.toString() else "-",
+            valueIBI = ibi,
+            message = ""
+        )
+
+        val now = LocalDateTime.now()
+        val duration = Duration.between(startTime, now)
+        if (duration.seconds >= TRACKING_DURATION_LIMIT) {
+            //데이터를 저장
+            endTime = LocalDateTime.now()
+            val trackedEntity = TrackedDataEntity(
+                hrDataString = hrList.joinToString(","), // e.g. "75,77,80,..."
+                //ibiDataString = currentIBI.joinToString(","), //
+                startTime = startTime.toString(),
+                endTime = endTime.toString()
+            )
+
+            saveDataAndStop(trackedEntity)
+        }
+    }
+
+    private fun saveDataAndStop(entity: TrackedDataEntity) {
+        viewModelScope.launch {
+            insertTrackedDataUseCase(entity)
+            hrList.clear()
+            _stopSignal.value = true
+        }
+    }
+
 }
+
 
 data class ConnectionState(
     val connected: Boolean,

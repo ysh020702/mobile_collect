@@ -38,41 +38,35 @@ fun MainScreen(
     }
 
     DataCollectTheme {
-        Box(
+        ScalingLazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black),
-            contentAlignment = Alignment.Center
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                // HR 텍스트
+            item {
                 Text(
                     text = "HR",
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
+            }
 
-                // 실제 심박수 값
-                // 아이디어 - 40개 다 측정될 때까지 퍼센테이지로 진행도 보여주기
+            item {
                 Text(
                     text = valueHR,
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
+            }
 
-                // 측정 시작/중지 버튼
+            item {
                 Button(
                     onClick = {
-                        //측정이 자동으로 중지되도록 해야 함
                         if (trackingRunning) onStop()
-                        else {
-                            onStart()
-
-                        }
+                        else onStart()
                     },
                     enabled = connected,
                     modifier = Modifier
@@ -88,10 +82,9 @@ fun MainScreen(
                         color = MaterialTheme.colors.onPrimary
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 전송 버튼
+            item {
                 Button(
                     onClick = onSend,
                     enabled = connected,

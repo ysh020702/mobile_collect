@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.domain.usecase
+package com.example.collecthealthdata.domain.usecase.roomDB
 
 import com.example.collecthealthdata.domain.repository.TrackedDataRepository
 import javax.inject.Inject

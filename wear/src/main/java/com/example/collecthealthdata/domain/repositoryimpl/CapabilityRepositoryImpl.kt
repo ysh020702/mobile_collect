@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.data.repository
+package com.example.collecthealthdata.domain.repositoryimpl
 
 import com.example.collecthealthdata.domain.repository.CapabilityRepository
 import android.util.Log

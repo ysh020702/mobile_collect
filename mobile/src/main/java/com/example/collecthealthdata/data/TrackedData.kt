@@ -1,6 +1,5 @@
-package com.example.collecthealthdata.domain.model
+package com.example.collecthealthdata.data
 
-import com.example.collecthealthdata.data.local.TrackedDataEntity
 import kotlinx.serialization.Serializable
 
 @Serializable

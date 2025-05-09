@@ -1,6 +1,7 @@
 package com.example.collecthealthdata.data
 
 import android.util.Log
+import android.widget.Toast
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
 
@@ -20,14 +21,19 @@ class DataListenerService : WearableListenerService() {
                 Log.i(TAG, "Service: message (/msg) received: $value")
 
                 if (value != "") {
-                    startActivity(
-                        Intent(this, MainActivity::class.java)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("message", value)
-                    )
+                    //TODO : 데이터를 받아서 DB에 저장하기
+                    Toast.makeText(baseContext, "데이터 수신 완료",Toast.LENGTH_SHORT).show()
+
                 } else {
                     Log.i(TAG, "value is an empty string")
                 }
             }
         }
     }
+
+    override fun onCreate() {
+        super.onCreate()
+        Log.d(TAG, "Service created")
+    }
+
 }

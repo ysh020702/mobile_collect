@@ -1,7 +1,7 @@
 package com.example.collecthealthdata.domain.repository
 
 import com.example.collecthealthdata.data.local.TrackedDataEntity
-import com.example.collecthealthdata.domain.model.TrackedData
+import com.example.collecthealthdata.data.TrackedData
 import kotlinx.coroutines.flow.Flow
 
 interface TrackedDataRepository {

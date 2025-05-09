@@ -1,6 +1,6 @@
 package com.example.collecthealthdata.domain.usecase
 
-import com.example.collecthealthdata.data.repository.TrackerMessage
+import com.example.collecthealthdata.domain.repositoryimpl.TrackerMessage
 import com.example.collecthealthdata.domain.repository.TrackingRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject

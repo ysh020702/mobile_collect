@@ -16,8 +16,8 @@
 
 package com.example.collecthealthdata.domain.usecase
 
-import com.example.collecthealthdata.data.repository.ConnectionMessage
-import com.example.collecthealthdata.data.repository.HealthTrackingServiceConnection
+import com.example.collecthealthdata.domain.repositoryimpl.ConnectionMessage
+import com.example.collecthealthdata.domain.repositoryimpl.HealthTrackingServiceConnection
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
