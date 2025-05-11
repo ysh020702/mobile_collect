@@ -24,7 +24,7 @@ fun MainScreen(
     trackingMessage: String,
     valueHR: String,
     valueIBI: ArrayList<Int>,
-    onStart: () -> Unit,
+    onStart: (Boolean) -> Unit,
     onStop: () -> Unit,
     onSend: () -> Unit,
     stopSignal: Boolean
@@ -62,25 +62,41 @@ fun MainScreen(
                 )
             }
 
-            item {
-                Button(
-                    onClick = {
-                        if (trackingRunning) onStop()
-                        else onStart()
-                    },
-                    enabled = connected,
-                    modifier = Modifier
-                        .width(120.dp)
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = if (trackingRunning) Color.Red else MaterialTheme.colors.primary
-                    )
-                ) {
-                    Text(
-                        text = if (trackingRunning) "측정 중지" else "측정 시작",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colors.onPrimary
-                    )
+            if (trackingRunning) {
+                item {
+                    Button(
+                        onClick = onStop,
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red)
+                    ) {
+                        Text("측정 중지", fontSize = 14.sp, color = Color.White)
+                    }
+                }
+            } else {
+                item {
+                    Button(
+                        onClick = { onStart(true) }, // 피고 싶은 경우
+                        modifier = Modifier
+                            .width(140.dp)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50))
+                    ) {
+                        Text("피고 싶을 때 시작", fontSize = 14.sp, color = Color.White)
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = { onStart(false) }, // 안 피고 싶은 경우
+                        modifier = Modifier
+                            .width(140.dp)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2196F3))
+                    ) {
+                        Text("안 피고 싶을 때 시작", fontSize = 14.sp, color = Color.White)
+                    }
                 }
             }
 

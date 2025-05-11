@@ -2,4 +2,5 @@
     <string name="app_name">CollectHealthData</string>
     <string name="title_activity_auth">AuthActivity</string>
     <string name="title_activity_register_user">RegisterUserActivity</string>
+    <string name="title_activity_receive">ReceiveActivity</string>
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" >
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="true"
@@ -11,7 +11,34 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CollectHealthData"
-        tools:targetApi="31" >
+        tools:targetApi="31">
+        <activity
+            android:name=".ui.ReceiveActivity"
+            android:exported="false"
+            android:label="@string/title_activity_receive"
+            android:theme="@style/Theme.CollectHealthData" />
+
+        <meta-data
+            android:name="com.google.android.gms.wearable.capabilities"
+            android:resource="@xml/wear" />
+
+        <service
+            android:name=".data.DataListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <action android:name="com.google.android.gms.wearable.REQUEST_RECEIVED" />
+                <action android:name="com.google.android.gms.wearable.CAPABILITY_CHANGED" />
+                <action android:name="com.google.android.gms.wearable.CHANNEL_EVENT" />
+
+                <data
+                    android:host="*"
+                    android:pathPrefix="/msg"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".ui.UserInputActivity"
             android:exported="false"
@@ -21,7 +48,7 @@
             android:name=".ui.AuthActivity"
             android:exported="true"
             android:label="@string/title_activity_auth"
-            android:theme="@style/Theme.CollectHealthData" >
+            android:theme="@style/Theme.CollectHealthData">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,19 +58,6 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true" />
-
-        <service
-            android:name=".data.DataListenerService"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_LISTENER">
-
-            <intent-filter>
-                <!-- 메시지 수신을 위한 인텐트 필터 -->
-                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <data android:scheme="wear" android:host="*" android:pathPrefix="/msg" />
-            </intent-filter>
-        </service>
-
     </application>
 
 </manifest>

@@ -18,7 +18,15 @@ import com.example.collecthealthdata.ui.screen.Permission
 import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "MainActivity"
+/*
+wear os 사용하면서 느낀 점..
+안드로이드 워치 앱 개발은 많은 걸 하면 안 됨..
+성능 개 느리고
+부팅해서 와이파이 연결하는 데만 배터리 2프로 잡아먹음
 
+그냥 OS자체가 이 워치의 낮은 성능을 받쳐주지 못하는 느낌
+앱에서 뭘 하는 순간 배터리 타임이 확 짧아짐
+ */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -62,7 +70,7 @@ class MainActivity : ComponentActivity() {
                     trackingState.message,
                     trackingState.valueHR,
                     trackingState.valueIBI,
-                    { viewModel.startTracking(); Log.i(TAG, "startTracking()") },
+                    { craving -> viewModel.startTracking(craving); Log.i(TAG, "startTracking($craving)") },
                     { viewModel.stopTracking(); Log.i(TAG, "stopTracking()") },
                     { viewModel.sendMessage(); Log.i(TAG, "sendMessage()") },
                     stopSignal

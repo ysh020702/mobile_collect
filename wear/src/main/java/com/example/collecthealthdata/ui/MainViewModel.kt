@@ -14,6 +14,7 @@ import com.example.collecthealthdata.domain.usecase.roomDB.InsertTrackedDataUseC
 import com.samsung.android.service.health.tracking.HealthTrackerException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,6 +60,7 @@ class MainViewModel @Inject constructor(
 
 
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    private var Craving = false
     private var hrList = ArrayList<Int>()
     private var startTime: LocalDateTime? = null
     private var endTime: LocalDateTime? = null
@@ -122,27 +124,19 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun sendMessage() {
-        //TODO: SendMessage -> 실행 조건 바꾸기!!! SEND 버튼 눌렀을 때로!! ROOM에서 있는 데이터베이스가 맞는지 확인
-        viewModelScope.launch {
-            if (sendMessageUseCase()) {
-                _messageSentToast.emit(true)
-            } else {
-                _messageSentToast.emit(false)
-            }
-        }
-    }
-
-
     private var trackingJob: Job? = null
-    fun startTracking() {
+    fun startTracking(craving : Boolean) {
         trackingJob?.cancel()
         Log.i(TAG, "startTracking()")
         if (areTrackingCapabilitiesAvailableUseCase()) {
             trackingJob = viewModelScope.launch {
+
                 //측정 시작 시간 저장 및 HRlist초기화
-                startTime = LocalDateTime.now()
-                hrList = ArrayList<Int>()
+                Craving = craving                           //담배 피고 싶은 욕구
+                startTime = LocalDateTime.now()             //측정 시작 시간
+                hrList = ArrayList<Int>()                   //심박수 배열
+
+                Log.i(TAG, "startTime updated $startTime")
 
                 trackingUseCase().collect { trackerMessage ->
                     when (trackerMessage) {
@@ -228,6 +222,7 @@ class MainViewModel @Inject constructor(
             //데이터를 저장
             endTime = LocalDateTime.now()
             val trackedEntity = TrackedDataEntity(
+                craving = Craving,
                 hrDataString = hrList.joinToString(","), // e.g. "75,77,80,..."
                 //ibiDataString = currentIBI.joinToString(","), //
                 startTime = startTime.toString(),
@@ -242,7 +237,22 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             insertTrackedDataUseCase(entity)
             hrList.clear()
+            startTime = LocalDateTime.now() // ← 새 추적 세션 시작 시간 초기화
             _stopSignal.value = true
+
+            delay(100) // 살짝 delay 주고
+            _stopSignal.value = false // 다시 false로 리셋        }
+        }
+    }
+
+    fun sendMessage() {
+        //TODO: SendMessage -> 실행 조건 바꾸기!!! SEND 버튼 눌렀을 때로!! ROOM에서 있는 데이터베이스가 맞는지 확인
+        viewModelScope.launch {
+            if (sendMessageUseCase()) {
+                _messageSentToast.emit(true)
+            } else {
+                _messageSentToast.emit(false)
+            }
         }
     }
 

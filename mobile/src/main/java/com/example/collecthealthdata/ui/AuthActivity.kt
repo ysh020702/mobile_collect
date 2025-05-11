@@ -50,6 +50,18 @@ class AuthActivity : ComponentActivity() {
         auth = FirebaseAuth.getInstance()
         context = this.baseContext
 
+        val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+        val savedEmail = prefs.getString("email", null)
+        val savedPassword = prefs.getString("password", null)
+
+        if (savedEmail != null && savedPassword != null) {
+            signIn(savedEmail, savedPassword)
+        } else {
+            // 로그인 UI 표시
+            setLoginContent()
+        }
+    }
+    private fun setLoginContent(){
         setContent {
             CollectHealthDataTheme {
                 // A surface container using the 'background' color from the theme
@@ -67,6 +79,29 @@ class AuthActivity : ComponentActivity() {
         }
     }
 
+    private fun signIn(email: String, password: String){
+        //로그인 로직 작성
+        Log.d(TAG, "로그인 시도: 이메일=$email, 비밀번호=$password")
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d(TAG, "signInWithEmail:success")
+                    val user = auth.currentUser
+                    saveLoginInfo(email, password)
+                    updateUI(user)
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w(TAG, "signInWithEmail:failure", task.exception)
+                    Toast.makeText(
+                        baseContext,
+                        "Authentication failed.",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
+    }
+
     private fun signUp(email: String, password: String) {
         // 회원가입 로직 작성
         Log.d(TAG, "회원가입 시도: 이메일=$email, 비밀번호=$password")
@@ -76,6 +111,7 @@ class AuthActivity : ComponentActivity() {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(TAG, "createUserWithEmail:success")
                     val user = auth.currentUser
+                    saveLoginInfo(email, password)
                     registerUser(user)
                     updateUI(user)
 
@@ -90,31 +126,17 @@ class AuthActivity : ComponentActivity() {
                 }
             }
     }
-    private fun signIn(email: String, password: String){
-        //로그인 로직 작성
-        Log.d(TAG, "로그인 시도: 이메일=$email, 비밀번호=$password")
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-                    Log.d(TAG, "signInWithEmail:success")
-                    val user = auth.currentUser
-                    updateUI(user)
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.w(TAG, "signInWithEmail:failure", task.exception)
-                    Toast.makeText(
-                        baseContext,
-                        "Authentication failed.",
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                    //updateUI(null)
-                }
-            }
+
+    private fun saveLoginInfo(email: String, password: String) {
+        val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+        prefs.edit()
+            .putString("email", email)
+            .putString("password", password)
+            .apply()
     }
 
-    //register A User Into Firebase Database
     private fun registerUser(user: FirebaseUser?){
+        //register A User Into Firebase Database
         if (user == null) return
         //프로젝트에 있는 유저 인스턴스
         val userInstance = User(id = user.uid.toString(), email = user.email.toString())
@@ -124,13 +146,13 @@ class AuthActivity : ComponentActivity() {
 
         //user -> userID -> user Data 저장
         database.child("users").child(userInstance.id).setValue(userInstance)
-        Log.d(TAG, "registerUser, User 저장 완료")
+        Log.d(TAG, "userInformation Stored")
     }
 
     //going To mainActivity
     private fun updateUI(user: FirebaseUser?){
         if(user == null){
-            Log.d(TAG, "유저 정보 받아오기 실패")
+            Log.d(TAG, "Failed To Get User Information")
             Toast.makeText(context, "유저 정보 받아오기 실패", Toast.LENGTH_SHORT).show()
             return
         }
@@ -215,12 +237,4 @@ fun isValidEmail(email: String): Boolean {
 }
 fun isValidPw(pw:String):Boolean {
     return pw.isNotEmpty()
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CollectHealthDataTheme {
-
-    }
 }
