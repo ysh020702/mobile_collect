@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -12,15 +12,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CollectHealthData"
         tools:targetApi="31">
-        <activity
-            android:name=".ui.ReceiveActivity"
-            android:exported="false"
-            android:label="@string/title_activity_receive"
-            android:theme="@style/Theme.CollectHealthData" />
-
-        <meta-data
-            android:name="com.google.android.gms.wearable.capabilities"
-            android:resource="@xml/wear" />
 
         <service
             android:name=".data.DataListenerService"
@@ -58,6 +49,11 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true" />
+        <activity
+            android:name=".ui.ReceiveActivity"
+            android:exported="false"
+            android:label="@string/title_activity_receive"
+            android:theme="@style/Theme.CollectHealthData" />
     </application>
 
 </manifest>

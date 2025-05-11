@@ -1,5 +1,6 @@
 package com.example.collecthealthdata.ui
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,8 +12,12 @@ import com.example.collecthealthdata.domain.usecase.*
 import com.example.collecthealthdata.domain.usecase.roomDB.DeleteAllTrackedDataUseCase
 import com.example.collecthealthdata.domain.usecase.roomDB.GetTrackedDataUseCase
 import com.example.collecthealthdata.domain.usecase.roomDB.InsertTrackedDataUseCase
+import com.google.android.gms.wearable.Node
+import com.google.android.gms.wearable.Wearable
 import com.samsung.android.service.health.tracking.HealthTrackerException
+import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -36,7 +42,8 @@ class MainViewModel @Inject constructor(
     private val areTrackingCapabilitiesAvailableUseCase: AreTrackingCapabilitiesAvailableUseCase,
     private val insertTrackedDataUseCase: InsertTrackedDataUseCase, //RoomDB
     private val getTrackedDataUseCase: GetTrackedDataUseCase,
-    private val deleteAllTrackedDataUseCase: DeleteAllTrackedDataUseCase
+    private val deleteAllTrackedDataUseCase: DeleteAllTrackedDataUseCase,
+    @ApplicationContext context: Context
 ): ViewModel() {
     //Set up Our Invironment
     private val _messageSentToast = MutableSharedFlow<Boolean>()
@@ -68,12 +75,13 @@ class MainViewModel @Inject constructor(
     private val TRACKING_DURATION_LIMIT = 30
     val stopSignal: StateFlow<Boolean> = _stopSignal
 
-
     @Inject
     lateinit var trackingUseCase: TrackingUseCase
 
     private var currentHR = "-"
     private var currentIBI = ArrayList<Int>(4)
+
+
 
     fun stopTracking() {
         stopTrackingUseCase() //이건 listener unset 밖에 없다
@@ -255,7 +263,6 @@ class MainViewModel @Inject constructor(
             }
         }
     }
-
 }
 
 

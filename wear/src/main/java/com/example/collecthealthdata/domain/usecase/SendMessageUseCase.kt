@@ -2,6 +2,7 @@ package com.example.collecthealthdata.domain.usecase
 
 import android.util.Log
 import com.example.collecthealthdata.data.local.TrackedDataEntity
+import com.example.collecthealthdata.data.local.TrackedDataSerializable
 import com.example.collecthealthdata.domain.repository.MessageRepository
 import com.example.collecthealthdata.domain.repository.TrackedDataRepository
 import kotlinx.coroutines.flow.first
@@ -32,7 +33,8 @@ class SendMessageUseCase @Inject constructor(
         // 요소 하나씩 전송
         var successCount = 0
         for (entity in trackedDataList) {
-            val message = encodeMessage(entity)
+            var s_entity : TrackedDataSerializable = toSerializable(entity)
+            val message = encodeMessage(s_entity)
             val result = messageRepository.sendMessage(message, node, MESSAGE_PATH)
             if (result) {
                 successCount++
@@ -46,7 +48,18 @@ class SendMessageUseCase @Inject constructor(
         return successCount == trackedDataList.size // 모두 전송 성공 시
     }
 
-    private fun encodeMessage(entity: TrackedDataEntity): String {
+    private fun encodeMessage(entity: TrackedDataSerializable): String {
         return Json.encodeToString(entity)
+    }
+
+    private fun toSerializable(entity : TrackedDataEntity) : TrackedDataSerializable{
+        return TrackedDataSerializable(
+            id = entity.id,
+            craving = entity.craving,
+            hrDataString = entity.hrDataString,
+            timestamp = entity.timestamp,
+            startTime = entity.startTime,
+             endTime = entity.endTime
+        )
     }
 }

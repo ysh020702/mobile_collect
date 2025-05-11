@@ -1,0 +1,15 @@
+package com.example.collecthealthdata.data.local
+
+import kotlinx.serialization.Serializable
+
+// 직렬화용 데이터 클래스
+@Serializable
+data class TrackedDataSerializable(
+    val id: Int = 0,
+    val craving: Boolean,
+    val hrDataString: String = "",
+
+    val timestamp: Long = System.currentTimeMillis(),
+    val startTime: String = "",
+    val endTime: String = ""
+)

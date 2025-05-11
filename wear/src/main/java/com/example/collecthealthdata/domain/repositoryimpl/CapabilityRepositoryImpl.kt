@@ -17,9 +17,10 @@ class CapabilityRepositoryImpl @Inject constructor(
 
     override suspend fun getCapabilitiesForReachableNodes(): Map<Node, Set<String>> {
         Log.i(TAG, "🔍 Fetching all reachable capabilities...")
-
+        
         val allCapabilities =
-            capabilityClient.getAllCapabilities(CapabilityClient.FILTER_REACHABLE).await()
+            capabilityClient.getAllCapabilities(CapabilityClient.FILTER_ALL).await()
+        Log.i(TAG, "Capabilities fetched: $allCapabilities")
 
         val allReachableNodes = mutableSetOf<Node>()
         val capabilityMap = mutableMapOf<Node, MutableSet<String>>()

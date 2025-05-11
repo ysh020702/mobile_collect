@@ -20,7 +20,7 @@ import com.example.collecthealthdata.user.User
 
 @Composable
 fun ReceiveScreen(
-    results: List<TrackedDataEntity>
+    results: TrackedDataEntity
 ) {
     Column(
         modifier = Modifier
@@ -41,5 +41,17 @@ fun ReceiveScreen(
            text = "DataReceivedScreen",
            color = Color.Gray,
        )
+        Spacer(
+            Modifier
+                .height(70.dp)
+                .fillMaxWidth()
+                .background(Color.Black)
+        )
+        Text(
+            textAlign = TextAlign.Start,
+            fontSize = 20.sp,
+            text = results.hrDataString,
+            color = Color.Gray,
+        )
     }
 }
