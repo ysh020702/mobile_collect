@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
     kotlin("plugin.serialization") version "2.0.21"
+    alias(libs.plugins.google.devtools.ksp)
+    id("com.google.dagger.hilt.android") version "2.50"
 }
 
 android {
@@ -39,6 +41,10 @@ android {
     buildFeatures {
         compose = true
     }
+
+}
+hilt{
+    enableAggregatingTask = false
 }
 
 dependencies {
@@ -72,4 +78,10 @@ dependencies {
 
     //Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    var hilt_version = 2.51
+    //dagger Hilt
+    implementation("com.google.dagger:hilt-android:$hilt_version")
+    ksp("com.google.dagger:hilt-compiler:$hilt_version")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 }

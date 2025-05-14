@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.ui.screens
+package com.example.collecthealthdata.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +16,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.collecthealthdata.data.TrackedDataEntity
-import com.example.collecthealthdata.user.User
+import com.example.collecthealthdata.data.User
 
 @Composable
 fun ReceiveScreen(
-    results: TrackedDataEntity
+    results: List<TrackedDataEntity>
 ) {
+    var combinedText = results.joinToString(separator = "\n") {it.hrDataString}
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -50,7 +51,7 @@ fun ReceiveScreen(
         Text(
             textAlign = TextAlign.Start,
             fontSize = 20.sp,
-            text = results.hrDataString,
+            text = combinedText,
             color = Color.Gray,
         )
     }

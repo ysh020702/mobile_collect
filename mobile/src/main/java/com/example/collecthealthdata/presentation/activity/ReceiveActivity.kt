@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.ui
+package com.example.collecthealthdata.presentation.activity
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,9 +7,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import com.example.collecthealthdata.HelpFunctions
-import com.example.collecthealthdata.ui.screens.ReceiveScreen
+import com.example.collecthealthdata.presentation.screens.ReceiveScreen
 
-const val TAG = "ReceiveActivity"
+private const val TAG = "ReceiveActivity"
 
 class ReceiveActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

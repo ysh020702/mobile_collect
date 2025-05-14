@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.ui.theme
+package com.example.collecthealthdata.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

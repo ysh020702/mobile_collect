@@ -1,7 +1,8 @@
-package com.example.collecthealthdata.ui
+package com.example.collecthealthdata.presentation.activity
 
 import android.content.ContentValues.TAG
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.util.Patterns
@@ -29,18 +30,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.collecthealthdata.ui.theme.CollectHealthDataTheme
-import com.example.collecthealthdata.user.User
+import com.example.collecthealthdata.presentation.theme.CollectHealthDataTheme
+import com.example.collecthealthdata.data.User
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
+import androidx.core.content.edit
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import javax.inject.Named
 
+private const val TAG = "AuthActivity"
+
+@AndroidEntryPoint
 class AuthActivity : ComponentActivity() {
+
+    @Inject @Named("login_prefs") lateinit var loginPrefs : SharedPreferences
+    @Inject @Named("user_prefs") lateinit var userPrefs : SharedPreferences
     private lateinit var auth: FirebaseAuth
     private var context = this.baseContext
     private lateinit var database: DatabaseReference
@@ -50,9 +60,9 @@ class AuthActivity : ComponentActivity() {
         auth = FirebaseAuth.getInstance()
         context = this.baseContext
 
-        val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
-        val savedEmail = prefs.getString("email", null)
-        val savedPassword = prefs.getString("password", null)
+
+        val savedEmail = loginPrefs.getString("email", null)
+        val savedPassword = loginPrefs.getString("password", null)
 
         if (savedEmail != null && savedPassword != null) {
             signIn(savedEmail, savedPassword)
@@ -82,6 +92,11 @@ class AuthActivity : ComponentActivity() {
     private fun signIn(email: String, password: String){
         //로그인 로직 작성
         Log.d(TAG, "로그인 시도: 이메일=$email, 비밀번호=$password")
+        if (email.isBlank() || password.isBlank()) {
+            Toast.makeText(context, "이메일 또는 비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
@@ -105,6 +120,11 @@ class AuthActivity : ComponentActivity() {
     private fun signUp(email: String, password: String) {
         // 회원가입 로직 작성
         Log.d(TAG, "회원가입 시도: 이메일=$email, 비밀번호=$password")
+        if (email.isBlank() || password.isBlank()) {
+            Toast.makeText(context, "이메일 또는 비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
@@ -128,11 +148,16 @@ class AuthActivity : ComponentActivity() {
     }
 
     private fun saveLoginInfo(email: String, password: String) {
-        val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
-        prefs.edit()
-            .putString("email", email)
-            .putString("password", password)
-            .apply()
+        loginPrefs.edit().apply(){
+            putString("email", email).putString("password", password)
+            apply()
+        }
+    }
+    private fun saveUserInfo(userId: String){
+        userPrefs.edit().apply {
+            putString("user_id", userId)
+            apply() // apply()를 사용하여 비동기적으로 저장
+        }
     }
 
     private fun registerUser(user: FirebaseUser?){
@@ -145,22 +170,22 @@ class AuthActivity : ComponentActivity() {
         database = Firebase.database.reference
 
         //user -> userID -> user Data 저장
-        database.child("users").child(userInstance.id).setValue(userInstance)
+        database.child("users").child(user.uid.toString()).setValue(userInstance)
         Log.d(TAG, "userInformation Stored")
     }
 
-    //going To mainActivity
+
     private fun updateUI(user: FirebaseUser?){
+        //going To mainActivity
         if(user == null){
             Log.d(TAG, "Failed To Get User Information")
             Toast.makeText(context, "유저 정보 받아오기 실패", Toast.LENGTH_SHORT).show()
             return
         }
 
-        //MainActivity로 넘어가는 로직, FirebaseUser를 인텐트로 받아서
-        val intent = Intent(context, MainActivity::class.java).apply {
-            putExtra("USER_ID", user.uid.toString())
-        }
+        saveUserInfo(user.uid.toString())
+
+        val intent = Intent(context, MainActivity::class.java)
         startActivity(intent)
         finish() // 현재 액티비티 종료
         return
@@ -236,5 +261,5 @@ fun isValidEmail(email: String): Boolean {
     return Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }
 fun isValidPw(pw:String):Boolean {
-    return pw.isNotEmpty()
+    return pw.isNotEmpty() && (pw.length >= 6)
 }

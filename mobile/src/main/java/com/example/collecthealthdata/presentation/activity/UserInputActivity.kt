@@ -1,8 +1,7 @@
-package com.example.collecthealthdata.ui
+package com.example.collecthealthdata.presentation.activity
 
 import android.content.Context
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -14,12 +13,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.*
-import com.example.collecthealthdata.ui.screens.UserInputScreen
-import com.example.collecthealthdata.user.User
+import com.example.collecthealthdata.presentation.screens.UserInputScreen
+import com.example.collecthealthdata.data.User
 import com.google.firebase.Firebase
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
 
+private const val TAG = "UserInputActivity"
 
 class UserInputActivity : ComponentActivity() {
     lateinit var context: Context
@@ -43,7 +43,7 @@ class UserInputActivity : ComponentActivity() {
         database = Firebase.database.reference
         context = this.baseContext
         user = intent.getSerializableExtra("USER") as? User ?: run {
-            Log.e("UserInputActivity", "User data is missing from Intent!")
+            Log.e(TAG, "User data is missing from Intent!")
             finish() // Activity 종료
             return
         }
@@ -51,16 +51,16 @@ class UserInputActivity : ComponentActivity() {
 
     fun saveUserToFirebase(user: User) {
         if (user.id.isBlank()) {
-            Log.e("Firebase", "User ID is missing, cannot save to Firebase!")
+            Log.e(TAG, "User ID is missing, cannot save to Firebase!")
             return
         }
         database.child("users").child(user.id).setValue(user)
             .addOnSuccessListener {
-                Log.d("Firebase", "User data saved successfully!")
+                Log.d(TAG, "User data saved successfully!")
                 Toast.makeText(context, "유저 데이터 저장에 성공하였습니다",Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
-                Log.e("Firebase", "Failed to save user data: ${it.message}")
+                Log.e(TAG, "Failed to save user data: ${it.message}")
                 Toast.makeText(context, "유저 데이터 저장에 실패하였습니다. 로그를 분석해주세요",Toast.LENGTH_SHORT).show()
             }
 

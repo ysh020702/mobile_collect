@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.user
+package com.example.collecthealthdata.data
 
 import java.io.Serializable
 

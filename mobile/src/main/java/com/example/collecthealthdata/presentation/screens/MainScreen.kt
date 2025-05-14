@@ -1,18 +1,16 @@
-package com.example.collecthealthdata.ui.screens
+package com.example.collecthealthdata.presentation.screens
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.collecthealthdata.ui.AuthActivity
-import com.example.collecthealthdata.ui.UserInputActivity
-import com.example.collecthealthdata.user.User
+import com.example.collecthealthdata.presentation.activity.AuthActivity
+import com.example.collecthealthdata.presentation.activity.UserInputActivity
+import com.example.collecthealthdata.data.User
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.jvm.java
 

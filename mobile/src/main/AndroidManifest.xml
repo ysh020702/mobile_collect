@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".CollectHealthDataApp"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -31,12 +32,12 @@
         </service>
 
         <activity
-            android:name=".ui.UserInputActivity"
+            android:name=".presentation.activity.UserInputActivity"
             android:exported="false"
             android:label="@string/title_activity_register_user"
             android:theme="@style/Theme.CollectHealthData" />
         <activity
-            android:name=".ui.AuthActivity"
+            android:name=".presentation.activity.AuthActivity"
             android:exported="true"
             android:label="@string/title_activity_auth"
             android:theme="@style/Theme.CollectHealthData">
@@ -47,10 +48,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".presentation.activity.MainActivity"
             android:exported="true" />
         <activity
-            android:name=".ui.ReceiveActivity"
+            android:name=".presentation.activity.ReceiveActivity"
             android:exported="false"
             android:label="@string/title_activity_receive"
             android:theme="@style/Theme.CollectHealthData" />

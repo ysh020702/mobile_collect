@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.ui.screens
+package com.example.collecthealthdata.presentation.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,7 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
-import com.example.collecthealthdata.user.User
+import com.example.collecthealthdata.data.User
 
 @Composable
 fun UserInputScreen(user: User, onSave: (User) -> Unit) {

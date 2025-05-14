@@ -1,7 +1,7 @@
 package com.example.collecthealthdata.domain.usecase
 
+import HelpFunctions.Companion.toSerializable
 import android.util.Log
-import com.example.collecthealthdata.data.local.TrackedDataEntity
 import com.example.collecthealthdata.data.local.TrackedDataSerializable
 import com.example.collecthealthdata.domain.repository.MessageRepository
 import com.example.collecthealthdata.domain.repository.TrackedDataRepository
@@ -28,38 +28,31 @@ class SendMessageUseCase @Inject constructor(
         }
 
         val node = nodes.first()
-        val trackedDataList = trackedDataRepository.getAll().first()
-
-        // 요소 하나씩 전송
-        var successCount = 0
-        for (entity in trackedDataList) {
-            var s_entity : TrackedDataSerializable = toSerializable(entity)
-            val message = encodeMessage(s_entity)
-            val result = messageRepository.sendMessage(message, node, MESSAGE_PATH)
-            if (result) {
-                successCount++
-            } else {
-                Log.e(TAG, "Failed to send entity: $entity")
-            }
+        val entityList = trackedDataRepository.getAll().first()
+        if (entityList.isEmpty()) {
+            Log.i(TAG, "No message to send")
         }
-        // 전송된 개수 로깅
-        Log.i(TAG, "Sent $successCount/${trackedDataList.size} messages")
+        var serializableList = entityList.map{toSerializable(it)}
 
-        return successCount == trackedDataList.size // 모두 전송 성공 시
+
+        val message = encodeMessage(serializableList)
+        val result = messageRepository.sendMessage(message, node, MESSAGE_PATH)
+        if (result) {
+            //TODO: DB삭제 주석 제거하기~~~
+            //trackedDataRepository.deleteAll()
+            Log.i(TAG, "Clean Database")
+        }else{
+            //TODO: 전송 실패 로직!
+            Log.e(TAG, "Failed to send entity")
+        }
+        Log.i(TAG, "Messages has Been Sent")
+
+        return true// 모두 전송 성공 시
     }
 
-    private fun encodeMessage(entity: TrackedDataSerializable): String {
-        return Json.encodeToString(entity)
+    private fun encodeMessage(entityList: List<TrackedDataSerializable>): String {
+        return Json.encodeToString(entityList)
     }
 
-    private fun toSerializable(entity : TrackedDataEntity) : TrackedDataSerializable{
-        return TrackedDataSerializable(
-            id = entity.id,
-            craving = entity.craving,
-            hrDataString = entity.hrDataString,
-            timestamp = entity.timestamp,
-            startTime = entity.startTime,
-             endTime = entity.endTime
-        )
-    }
+
 }
