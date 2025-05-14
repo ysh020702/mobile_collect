@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.collecthealthdata.ui.screen
+package com.example.collecthealthdata.presentation.screen
 
 import android.Manifest
 import android.util.Log

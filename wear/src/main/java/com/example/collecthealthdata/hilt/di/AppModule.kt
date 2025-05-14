@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.di
+package com.example.collecthealthdata.hilt.di
 
 import android.content.Context
 import androidx.room.Room
@@ -10,7 +10,6 @@ import com.example.collecthealthdata.domain.repositoryimpl.HealthTrackingService
 import com.example.collecthealthdata.domain.repositoryimpl.MessageRepositoryImpl
 import com.example.collecthealthdata.domain.repositoryimpl.TrackedDataRepositoryImpl
 import com.example.collecthealthdata.domain.repositoryimpl.TrackingRepositoryImpl
-import com.example.collecthealthdata.domain.usecase.*
 import com.example.collecthealthdata.domain.usecase.roomDB.DeleteAllTrackedDataUseCase
 import com.example.collecthealthdata.domain.usecase.roomDB.GetTrackedDataUseCase
 import com.example.collecthealthdata.domain.usecase.roomDB.InsertTrackedDataUseCase

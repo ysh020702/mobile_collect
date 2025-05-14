@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.ui.activity
+package com.example.collecthealthdata.presentation.activity
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -12,9 +12,9 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.collecthealthdata.ui.MainViewModel
-import com.example.collecthealthdata.ui.screen.MainScreen
-import com.example.collecthealthdata.ui.screen.Permission
+import com.example.collecthealthdata.presentation.MainViewModel
+import com.example.collecthealthdata.presentation.screen.MainScreen
+import com.example.collecthealthdata.presentation.screen.Permission
 import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "MainActivity"

@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.ui.screen
+package com.example.collecthealthdata.presentation.screen
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.*
-import com.example.collecthealthdata.ui.theme.DataCollectTheme
+import com.example.collecthealthdata.presentation.theme.DataCollectTheme
 
 private const val TAG = "MainScreen"
 

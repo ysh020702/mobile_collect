@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.ui
+package com.example.collecthealthdata.presentation
 
 import android.content.Context
 import android.util.Log
@@ -12,10 +12,7 @@ import com.example.collecthealthdata.domain.usecase.*
 import com.example.collecthealthdata.domain.usecase.roomDB.DeleteAllTrackedDataUseCase
 import com.example.collecthealthdata.domain.usecase.roomDB.GetTrackedDataUseCase
 import com.example.collecthealthdata.domain.usecase.roomDB.InsertTrackedDataUseCase
-import com.google.android.gms.wearable.Node
-import com.google.android.gms.wearable.Wearable
 import com.samsung.android.service.health.tracking.HealthTrackerException
-import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -25,7 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
