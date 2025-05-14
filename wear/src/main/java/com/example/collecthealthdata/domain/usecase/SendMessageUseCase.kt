@@ -1,6 +1,6 @@
 package com.example.collecthealthdata.domain.usecase
 
-import HelpFunctions.Companion.toSerializable
+import com.example.collecthealthdata.data.HelpFunctions.Companion.toSerializable
 import android.util.Log
 import com.example.collecthealthdata.data.local.TrackedDataSerializable
 import com.example.collecthealthdata.domain.repository.MessageRepository

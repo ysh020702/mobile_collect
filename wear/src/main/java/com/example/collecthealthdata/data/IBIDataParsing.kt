@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.data.util
+package com.example.collecthealthdata.data
 
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.ValueKey

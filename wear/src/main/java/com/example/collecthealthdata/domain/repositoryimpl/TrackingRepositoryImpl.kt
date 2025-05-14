@@ -3,7 +3,7 @@ package com.example.collecthealthdata.domain.repositoryimpl
 import android.content.Context
 import android.util.Log
 import com.example.collecthealthdata.R
-import com.example.collecthealthdata.data.util.IBIDataParsing.Companion.getValidIbiList
+import com.example.collecthealthdata.data.IBIDataParsing.Companion.getValidIbiList
 import com.example.collecthealthdata.data.TrackedData
 import com.example.collecthealthdata.domain.repository.TrackingRepository
 import com.samsung.android.service.health.tracking.HealthTracker
