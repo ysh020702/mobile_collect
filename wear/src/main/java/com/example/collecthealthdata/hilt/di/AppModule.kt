@@ -19,6 +19,7 @@ import com.example.collecthealthdata.domain.usecase.roomDB.InsertTrackedDataUseC
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Wearable
+import com.samsung.android.service.health.tracking.HealthTrackingService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -38,7 +38,7 @@ class SendMessageUseCase @Inject constructor(
         val result = messageRepository.sendMessage(message, node, MESSAGE_PATH)
         if (result) {
             //TODO: DB삭제 주석 제거하기~~~
-            //trackedDataRepository.deleteAll()
+            trackedDataRepository.deleteAll()
             Log.i(TAG, "Clean Database")
         }else{
             //TODO: 전송 실패 로직!

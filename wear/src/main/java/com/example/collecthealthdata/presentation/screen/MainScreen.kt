@@ -2,12 +2,18 @@ package com.example.collecthealthdata.presentation.screen
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.*
@@ -27,9 +33,12 @@ fun MainScreen(
     onStart: (Boolean) -> Unit,
     onStop: () -> Unit,
     onSend: () -> Unit,
+    onSpO2Click: () -> Unit,
     stopSignal: Boolean
 ) {
-    Log.i(TAG, "MainScreen Composable")
+    Log.i("MainScreen", "Composable")
+
+    val dividerColor = Color.White.copy(alpha = 0.3f)
 
     LaunchedEffect(stopSignal) {
         if (stopSignal) {
@@ -42,14 +51,14 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Text(
                     text = "HR",
+                    fontSize = 14.sp,
                     color = Color.Gray,
-                    fontSize = 14.sp
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
 
@@ -58,66 +67,77 @@ fun MainScreen(
                     text = valueHR,
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
+            item { Divider(color = dividerColor, thickness = 1.dp) }
 
             if (trackingRunning) {
                 item {
-                    Button(
-                        onClick = onStop,
-                        modifier = Modifier
-                            .width(120.dp)
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red)
-                    ) {
-                        Text("측정 중지", fontSize = 14.sp, color = Color.White)
-                    }
+                    MenuItem(text = "측정 중지", onClick = onStop)
                 }
+                item { Divider(color = dividerColor, thickness = 1.dp) }
             } else {
                 item {
-                    Button(
-                        onClick = { onStart(true) }, // 피고 싶은 경우
-                        modifier = Modifier
-                            .width(120.dp)
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50))
-                    ) {
-                        Text("피고 싶을 때 시작", fontSize = 14.sp, color = Color.White)
-                    }
+                    MenuItem(text = "피고 싶을 때 시작", onClick = { onStart(true) })
                 }
+                item { Divider(color = dividerColor, thickness = 1.dp) }
 
                 item {
-                    Button(
-                        onClick = { onStart(false) }, // 안 피고 싶은 경우
-                        modifier = Modifier
-                            .width(120.dp)
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2196F3))
-                    ) {
-                        Text("안 피고 싶을 때 시작", fontSize = 14.sp, color = Color.White)
-                    }
+                    MenuItem(text = "안 피고 싶을 때 시작", onClick = { onStart(false) })
                 }
-            }
+                item { Divider(color = dividerColor, thickness = 1.dp) }
 
-            item {
-                Button(
-                    onClick = onSend,
-                    enabled = connected,
-                    modifier = Modifier
-                        .width(120.dp)
-                        .height(44.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = MaterialTheme.colors.secondary
-                    )
-                ) {
-                    Text(
-                        text = "전송",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colors.onSecondary
+                item {
+                    MenuItem(text = "SpO2 측정", onClick = onSpO2Click)
+                }
+                item { Divider(color = dividerColor, thickness = 1.dp) }
+
+                item {
+                    MenuItem(
+                        text = "데이터 전송",
+                        onClick = onSend,
+                        enabled = connected
                     )
                 }
+                item { Divider(color = dividerColor, thickness = 1.dp) }
             }
         }
     }
+}
+
+
+@Composable
+fun MenuItem(
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 14.sp,
+            color = if (enabled) Color.White else Color.Gray
+        )
+    }
+}
+
+@Composable
+fun Divider(
+    color: Color,
+    thickness: Dp = 1.dp
+) {
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(thickness)
+            .background(color)
+    )
 }

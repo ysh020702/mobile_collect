@@ -8,6 +8,7 @@ import com.example.collecthealthdata.data.local.TrackedDataEntity
 import com.example.collecthealthdata.domain.repositoryimpl.ConnectionMessage
 import com.example.collecthealthdata.domain.repositoryimpl.TrackerMessage
 import com.example.collecthealthdata.data.TrackedData
+import com.example.collecthealthdata.domain.SpO2ResultStore
 import com.example.collecthealthdata.domain.usecase.*
 import com.example.collecthealthdata.domain.usecase.roomDB.DeleteAllTrackedDataUseCase
 import com.example.collecthealthdata.domain.usecase.roomDB.GetTrackedDataUseCase
@@ -39,6 +40,7 @@ class MainViewModel @Inject constructor(
     private val insertTrackedDataUseCase: InsertTrackedDataUseCase, //RoomDB
     private val getTrackedDataUseCase: GetTrackedDataUseCase,
     private val deleteAllTrackedDataUseCase: DeleteAllTrackedDataUseCase,
+    private val resultStore: SpO2ResultStore,
     @ApplicationContext context: Context
 ): ViewModel() {
     //Set up Our Invironment
@@ -62,7 +64,6 @@ class MainViewModel @Inject constructor(
     val connectionState: StateFlow<ConnectionState> = _connectionState
 
 
-    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     private var Craving = false
     private var hrList = ArrayList<Int>()
     private var ibiList = ArrayList<Int>()
@@ -98,7 +99,8 @@ class MainViewModel @Inject constructor(
     fun setUpTracking() {
         Log.i(TAG, "setUpTracking()")
         viewModelScope.launch {
-            makeConnectionToHealthTrackingServiceUseCase().collect { connectionMessage ->
+            makeConnectionToHealthTrackingServiceUseCase()
+                .collect { connectionMessage ->
                 Log.i(TAG, "makeConnectionToHealthTrackingServiceUseCase().collect")
                 when (connectionMessage) {
                     is ConnectionMessage.ConnectionSuccessMessage -> {
@@ -233,6 +235,8 @@ class MainViewModel @Inject constructor(
             spo2Value = 0
             spo2MeasuredAt = 0L
             recentActivityLevel = 0f
+
+            val(spo2MeasuredAt, spo2Value) = resultStore.loadSpO2()
 
 
             //데이터를 저장
