@@ -16,7 +16,7 @@
 
 package com.example.collecthealthdata.domain.usecase
 
-import com.example.collecthealthdata.domain.repository.TrackingRepository
+import com.example.collecthealthdata.data.repository.TrackingRepository
 import javax.inject.Inject
 
 class AreTrackingCapabilitiesAvailableUseCase @Inject constructor(

@@ -1,7 +1,7 @@
 package com.example.collecthealthdata.domain.repositoryimpl
 
 import android.util.Log
-import com.example.collecthealthdata.domain.repository.MessageRepository
+import com.example.collecthealthdata.data.repository.MessageRepository
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Node
 import kotlinx.coroutines.tasks.await

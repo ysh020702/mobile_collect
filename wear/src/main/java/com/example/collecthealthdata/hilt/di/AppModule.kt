@@ -4,7 +4,10 @@ import android.content.Context
 import androidx.room.Room
 import com.example.collecthealthdata.data.local.AppDatabase
 import com.example.collecthealthdata.data.local.TrackedDataDao
-import com.example.collecthealthdata.domain.repository.*
+import com.example.collecthealthdata.data.repository.CapabilityRepository
+import com.example.collecthealthdata.data.repository.MessageRepository
+import com.example.collecthealthdata.data.repository.TrackedDataRepository
+import com.example.collecthealthdata.data.repository.TrackingRepository
 import com.example.collecthealthdata.domain.repositoryimpl.CapabilityRepositoryImpl
 import com.example.collecthealthdata.domain.repositoryimpl.HealthTrackingServiceConnection
 import com.example.collecthealthdata.domain.repositoryimpl.MessageRepositoryImpl

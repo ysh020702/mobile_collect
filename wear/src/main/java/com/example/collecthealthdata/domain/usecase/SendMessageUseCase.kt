@@ -3,13 +3,12 @@ package com.example.collecthealthdata.domain.usecase
 import com.example.collecthealthdata.data.HelpFunctions.Companion.toSerializable
 import android.util.Log
 import com.example.collecthealthdata.data.local.TrackedDataSerializable
-import com.example.collecthealthdata.domain.repository.MessageRepository
-import com.example.collecthealthdata.domain.repository.TrackedDataRepository
+import com.example.collecthealthdata.data.repository.MessageRepository
+import com.example.collecthealthdata.data.repository.TrackedDataRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
-import kotlin.collections.isNotEmpty
 
 private const val TAG = "SendMessageUseCase"
 private const val MESSAGE_PATH = "/msg"

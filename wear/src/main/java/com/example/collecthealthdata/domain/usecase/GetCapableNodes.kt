@@ -1,6 +1,6 @@
 package com.example.collecthealthdata.domain.usecase
 
-import com.example.collecthealthdata.domain.repository.CapabilityRepository
+import com.example.collecthealthdata.data.repository.CapabilityRepository
 import com.google.android.gms.wearable.Node
 import javax.inject.Inject
 

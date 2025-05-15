@@ -1,6 +1,6 @@
 package com.example.collecthealthdata.domain.repositoryimpl
 
-import com.example.collecthealthdata.domain.repository.CapabilityRepository
+import com.example.collecthealthdata.data.repository.CapabilityRepository
 import android.util.Log
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.Node

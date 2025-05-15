@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.domain.repository
+package com.example.collecthealthdata.data.repository
 
 import com.google.android.gms.wearable.Node
 

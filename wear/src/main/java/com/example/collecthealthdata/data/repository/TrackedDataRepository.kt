@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.domain.repository
+package com.example.collecthealthdata.data.repository
 
 import com.example.collecthealthdata.data.local.TrackedDataEntity
 import com.example.collecthealthdata.data.TrackedData

@@ -3,7 +3,7 @@ package com.example.collecthealthdata.domain.repositoryimpl
 import com.example.collecthealthdata.data.local.TrackedDataDao
 import com.example.collecthealthdata.data.local.TrackedDataEntity
 
-import com.example.collecthealthdata.domain.repository.TrackedDataRepository
+import com.example.collecthealthdata.data.repository.TrackedDataRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
