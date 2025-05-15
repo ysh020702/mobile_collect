@@ -47,8 +47,7 @@ class TrackingRepositoryImpl
         "PERMISSION_ERROR" to R.string.PERMISSION_ERROR
     )
 
-    //최대 40개의 hr - ibi 데이터를 저장함
-    //db에는 HR의 평균만 저장할까?
+
     private val maxValuesToKeep = 40
     private var heartRateTracker: HealthTracker? = null
     private var validHrData = ArrayList<TrackedData>()
@@ -66,15 +65,33 @@ class TrackingRepositoryImpl
         repeat(howManyElementsToRemove) { validHrData.removeFirstOrNull() }
     }
 
+    /*
+    TODO: 추가해야 될 것:
+    private val trackingType = HealthTrackerType.ACCELEROMETER_CONTINUOUS
+    private val trackingType = HealthTrackerType.PPG_CONTINUOUS -> 심박수와 관계 있긴 함, 일단 Green 데이터만 넣어둘 것
+    private val trackingType = HealthTrackerType.SPO2_ON_DEMAND
+
+
+    혈중산소농도는 측정하기 버튼 눌러서 측정해두고, 앱에 최근 측정 결과를 저장.
+    데이터 저장 시에 저장된 값이 없거나, 1일이 지난 데이터이면 0으로 넣기(결손값NaN)
+    1일 안에 측정된 데이터이면 그냥 앱에 저장된 데이터로 넣기
+
+    가속도는, 최근 1시간 안에 격한 움직임의 정도를 0~1사이의 숫자로 표현하여 (퍼지 논리 응용)
+    앱에 최근 결과를 저장,
+    heartRate를 측정하고 DB에 넣을 때, 앱에 저장된 값을 읽어와 반영
+
+     private val trackingType = HealthTrackerType.BIA_ON_DEMAND(측정하기 눌렀을 때 딱 한번만) -> 이거못함 절대못함 ㅅㅂ,,,
+     */
     @ExperimentalCoroutinesApi
     override suspend fun track(): Flow<TrackerMessage> = callbackFlow {
-        //TODO: trackerListener 에서 다른 데이터도 받기!!
         val updateListener = object : HealthTracker.TrackerEventListener {
             override fun onDataReceived(dataPoints: MutableList<DataPoint>) {
 
                 for (dataPoint in dataPoints) {
 
                     var trackedData: TrackedData? = null
+
+                    //추적한 dataPoint 에서 data parsing
                     val hrValue = dataPoint.getValue(ValueKey.HeartRateSet.HEART_RATE)
                     val hrStatus = dataPoint.getValue(ValueKey.HeartRateSet.HEART_RATE_STATUS)
 
@@ -126,9 +143,12 @@ class TrackingRepositoryImpl
             }
         }
 
+        
+        //TODO: heartRateTracker 로부터, trackingType에 대한 트래커를 가져옴
         heartRateTracker =
             healthTrackingService!!.getHealthTracker(trackingType)
 
+        //TODO: heartRateTracker에 updateListener를 가져옴 -> 한 번에 trackingType에 대한 데이터만 가져올수 있음
         setListener(updateListener)
 
         awaitClose {

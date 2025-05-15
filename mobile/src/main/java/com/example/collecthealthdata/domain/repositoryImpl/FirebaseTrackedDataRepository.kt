@@ -10,18 +10,29 @@ import javax.inject.Inject
 
 class FirebaseTrackedDataRepository @Inject constructor() : TrackedDataRepository {
 
-    override suspend fun saveData(userId : String, dataList: List<TrackedDataEntity>){
-        var userRef = Firebase.database.reference
+    override suspend fun saveData(userId: String, dataList: List<TrackedDataEntity>) {
+        val userRef = Firebase.database.reference
             .child("users").child(userId).child("data")
 
         dataList.forEach { trackedData ->
             try {
-                userRef.child(trackedData.id.toString())
-                    .setValue(trackedData)
-                    .await() // 저장될 때까지 suspend
-                Log.d("FirebaseRepo", "Saved data for ID: ${trackedData.id}")
+                // 1. 중복 확인
+                val snapshot = userRef.orderByChild("timestamp")
+                    .equalTo(trackedData.timestamp.toDouble()) // timestamp가 Long이면 toDouble() 필요
+                    .get().await()
+
+                // 2. 이미 존재하면 skip
+                if (snapshot.exists()) {
+                    Log.d("FirebaseRepo", "Duplicate data exists for timestamp: ${trackedData.timestamp}")
+                    return@forEach
+                }
+
+                // 3. 새 데이터 저장
+                val newRef = userRef.push()
+                newRef.setValue(trackedData).await()
+                Log.d("FirebaseRepo", "Saved new data with key: ${newRef.key}")
             } catch (e: Exception) {
-                Log.e("FirebaseRepo", "Failed to save ID: ${trackedData.id}", e)
+                Log.e("FirebaseRepo", "Failed to save new data", e)
             }
         }
     }

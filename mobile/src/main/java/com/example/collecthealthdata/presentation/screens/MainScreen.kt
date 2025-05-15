@@ -2,6 +2,7 @@ package com.example.collecthealthdata.presentation.screens
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
@@ -30,16 +31,17 @@ fun MainScreen(context: Context, user: User) {
             // 왼쪽: 로그아웃 & 계정 삭제 버튼
             Row {
                 Button(onClick = {
-                    FirebaseAuth.getInstance().signOut()
-
-                    val intent = Intent(context, AuthActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    context.startActivity(intent)
+                    unDefinedFeature(context, "로그아웃")
+                    //FirebaseAuth.getInstance().signOut()
+                    //val intent = Intent(context, AuthActivity::class.java)
+                    //intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    //context.startActivity(intent)
                 }) {
                     Text("로그아웃")
                 }
                 Spacer(modifier = Modifier.width(8.dp)) // 버튼 간격
                 Button(onClick = {
+                    unDefinedFeature(context,"계정 삭제")
                     /*val user = FirebaseAuth.getInstance().currentUser
 
                     user?.delete()
@@ -65,10 +67,6 @@ fun MainScreen(context: Context, user: User) {
                 }
             }
 
-            // 오른쪽: Sync 버튼
-            Button(onClick = { /* Sync 클릭 로직 */ }) {
-                Text("Sync")
-            }
         }
 
         // 화면 중앙 버튼들
@@ -93,4 +91,8 @@ fun MainScreen(context: Context, user: User) {
             Button(onClick = { /* 버튼 3 클릭 */ }) { Text("Button 3") }
         }
     }
+}
+
+fun unDefinedFeature(context:Context, text: String){
+    Toast.makeText(context, "현재 $text 기능 비활성화중입니다. 개발자에게 문의해주세요",Toast.LENGTH_SHORT).show()
 }

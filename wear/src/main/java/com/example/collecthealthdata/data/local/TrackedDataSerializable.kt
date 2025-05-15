@@ -8,6 +8,10 @@ data class TrackedDataSerializable(
     val id: Int = 0,
     val craving: Boolean,
     val hrDataString: String = "",
+    var ibiDataString: String= "",
+    var spo2Value: Int?,
+    var spo2MeasuredAt: Long?,
+    var recentActivityLevel: Float?,
 
     val timestamp: Long = System.currentTimeMillis(),
     val startTime: String = "",

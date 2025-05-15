@@ -65,6 +65,10 @@ class MainViewModel @Inject constructor(
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     private var Craving = false
     private var hrList = ArrayList<Int>()
+    private var ibiList = ArrayList<Int>()
+    private var spo2Value = 0
+    private var spo2MeasuredAt = 0L
+    private var recentActivityLevel = 0f
     private var startTime: LocalDateTime? = null
     private var endTime: LocalDateTime? = null
     private val _stopSignal = MutableStateFlow(false)
@@ -139,6 +143,7 @@ class MainViewModel @Inject constructor(
                 Craving = craving                           //담배 피고 싶은 욕구
                 startTime = LocalDateTime.now()             //측정 시작 시간
                 hrList = ArrayList<Int>()                   //심박수 배열
+                ibiList = ArrayList<Int>()                  //심박 간 간격 배열
 
                 Log.i(TAG, "startTime updated $startTime")
 
@@ -200,7 +205,6 @@ class MainViewModel @Inject constructor(
     private fun processExerciseUpdate(trackedData: TrackedData) {
         //TODO: 여기가 실제 TrackedData처리되는 구간!! 여기서 데이터베이스 넣는 로직
         //TrackedData- Domain.Model.TrackedData
-        //HRString에 쌓인 값이 40개가 되면 특정 값을 리턴시켜서 MainScreen 에서 onStop이 실행되게 헤야 함
         val hr = trackedData.hr
         val ibi = trackedData.ibi
         Log.i(TAG, "last HeartRate: $hr, last IBI: $ibi")
@@ -211,6 +215,8 @@ class MainViewModel @Inject constructor(
         if (hr > 0) {
             hrList.add(hr)
         }
+        //ibi 값 누적 저장
+        ibiList.addAll(currentIBI)
 
         _trackingState.value = TrackingState(
             trackingRunning = true,
@@ -223,12 +229,21 @@ class MainViewModel @Inject constructor(
         val now = LocalDateTime.now()
         val duration = Duration.between(startTime, now)
         if (duration.seconds >= TRACKING_DURATION_LIMIT) {
+            //TODO: 위 3개의 값을 앱에 저장된 대로 받아올 것!!!
+            spo2Value = 0
+            spo2MeasuredAt = 0L
+            recentActivityLevel = 0f
+
+
             //데이터를 저장
             endTime = LocalDateTime.now()
             val trackedEntity = TrackedDataEntity(
                 craving = Craving,
                 hrDataString = hrList.joinToString(","), // e.g. "75,77,80,..."
-                //ibiDataString = currentIBI.joinToString(","), //
+                ibiDataString = ibiList.joinToString(","),
+                spo2Value = spo2Value,
+                spo2MeasuredAt = spo2MeasuredAt,
+                recentActivityLevel = recentActivityLevel,
                 startTime = startTime.toString(),
                 endTime = endTime.toString()
             )
@@ -241,7 +256,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             insertTrackedDataUseCase(entity)
             hrList.clear()
-            startTime = LocalDateTime.now() // ← 새 추적 세션 시작 시간 초기화
+            startTime = LocalDateTime.now() // 새 추적 세션 시작 시간 초기화
             _stopSignal.value = true
 
             delay(100) // 살짝 delay 주고
@@ -250,7 +265,6 @@ class MainViewModel @Inject constructor(
     }
 
     fun sendMessage() {
-        //TODO: SendMessage -> 실행 조건 바꾸기!!! SEND 버튼 눌렀을 때로!! ROOM에서 있는 데이터베이스가 맞는지 확인
         viewModelScope.launch {
             if (sendMessageUseCase()) {
                 _messageSentToast.emit(true)

@@ -79,7 +79,7 @@ fun MainScreen(
                     Button(
                         onClick = { onStart(true) }, // 피고 싶은 경우
                         modifier = Modifier
-                            .width(140.dp)
+                            .width(120.dp)
                             .height(48.dp),
                         colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50))
                     ) {
@@ -91,7 +91,7 @@ fun MainScreen(
                     Button(
                         onClick = { onStart(false) }, // 안 피고 싶은 경우
                         modifier = Modifier
-                            .width(140.dp)
+                            .width(120.dp)
                             .height(48.dp),
                         colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2196F3))
                     ) {
