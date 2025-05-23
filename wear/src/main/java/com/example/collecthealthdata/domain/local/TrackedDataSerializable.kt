@@ -9,6 +9,7 @@ data class TrackedDataSerializable(
     val craving: Boolean,
     val hrDataString: String = "",
     var ibiDataString: String= "",
+    val accelDataString: String = "",
     var spo2Value: Int?,
     var spo2MeasuredAt: Long?,
     var recentActivityLevel: Float?,

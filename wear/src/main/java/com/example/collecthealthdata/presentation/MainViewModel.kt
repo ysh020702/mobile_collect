@@ -10,6 +10,7 @@ import com.example.collecthealthdata.data.repositoryimpl.TrackerMessage
 import com.example.collecthealthdata.domain.TrackedData
 import com.example.collecthealthdata.domain.local.AccelData
 import com.example.collecthealthdata.data.SpO2ResultStore
+import com.example.collecthealthdata.data.repositoryimpl.AccelTrackerMessage
 import com.example.collecthealthdata.data.usecase.*
 import com.example.collecthealthdata.data.usecase.roomDB.DeleteAllTrackedDataUseCase
 import com.example.collecthealthdata.data.usecase.roomDB.GetTrackedDataUseCase
@@ -30,6 +31,7 @@ import javax.inject.Inject
 import kotlin.toString
 
 private const val TAG = "MainViewModel"
+private const val TRACKING_DURATION_LIMIT = 30
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -41,6 +43,8 @@ class MainViewModel @Inject constructor(
     private val getTrackedDataUseCase: GetTrackedDataUseCase,
     private val deleteAllTrackedDataUseCase: DeleteAllTrackedDataUseCase,
     private val resultStore: SpO2ResultStore,
+    private val trackingUseCase: TrackingUseCase,
+    private val accelerometerUseCase: AccelerometerUseCase,
     @ApplicationContext context: Context
 ): ViewModel() {
     //Set up Our Invironment
@@ -64,7 +68,7 @@ class MainViewModel @Inject constructor(
     val connectionState: StateFlow<ConnectionState> = _connectionState
 
 
-    private var Craving = false
+    private var craving = false
     private var hrList = mutableListOf<Int>()
     private var ibiList = mutableListOf<Int>()
     private var accelList = mutableListOf<AccelData>()
@@ -74,11 +78,10 @@ class MainViewModel @Inject constructor(
     private var startTime: LocalDateTime? = null
     private var endTime: LocalDateTime? = null
     private val _stopSignal = MutableStateFlow(false)
-    private val TRACKING_DURATION_LIMIT = 30
+
     val stopSignal: StateFlow<Boolean> = _stopSignal
 
-    @Inject
-    lateinit var trackingUseCase: TrackingUseCase
+
 
     private var currentHR = "-"
     private var currentIBI = ArrayList<Int>(4)
@@ -136,18 +139,35 @@ class MainViewModel @Inject constructor(
     }
 
     private var trackingJob: Job? = null
-    fun startTracking(craving : Boolean) {
+    fun startTracking(cravingState : Boolean) {
         trackingJob?.cancel()
         Log.i(TAG, "startTracking()")
         if (areTrackingCapabilitiesAvailableUseCase()) {
             trackingJob = viewModelScope.launch {
                 //자식 JOB 1 -> 가속도 센서 측정
                 launch{
+                    accelerometerUseCase().collect { trackerMessage ->
 
+                        when (trackerMessage){
+                            is AccelTrackerMessage.DataMessage -> {
+                                val acc = trackerMessage.data
+                                Log.d("ACC", "x=${acc.x}, y=${acc.y}, z=${acc.z}")
+                            }
+
+                            is AccelTrackerMessage.FlushCompletedMessage -> {
+                                Log.i(TAG, "TrackerMessage.FlushCompletedMessage")
+                            }
+
+                            is AccelTrackerMessage.TrackerErrorMessage -> {
+                                Log.i(TAG, "TrackerMessage.TrackerErrorMessage")
+                            }
+
+                        }
+                    }
                 }
                 //자식 JOB 2 -> 심박수 센서 측정
                 //측정 시작 시간 저장 및 HRlist초기화
-                Craving = craving                           //담배 피고 싶은 욕구
+                craving = cravingState                      //담배 피고 싶은 욕구
                 startTime = LocalDateTime.now()             //측정 시작 시간
                 hrList = ArrayList<Int>()                   //심박수 배열
                 ibiList = ArrayList<Int>()                  //심박 간 간격 배열
@@ -244,14 +264,17 @@ class MainViewModel @Inject constructor(
             recentActivityLevel = 0f
 
             val(spo2MeasuredAt, spo2Value) = resultStore.loadSpO2()
-
+            val accelDataString = accelList.joinToString(";") {
+                "${it.x},${it.y},${it.z},${it.timestamp}"
+            }
 
             //데이터를 저장
             endTime = LocalDateTime.now()
             val trackedEntity = TrackedDataEntity(
-                craving = Craving,
+                craving = craving,
                 hrDataString = hrList.joinToString(","), // e.g. "75,77,80,..."
                 ibiDataString = ibiList.joinToString(","),
+                accelDataString = accelDataString,
                 spo2Value = spo2Value,
                 spo2MeasuredAt = spo2MeasuredAt,
                 recentActivityLevel = recentActivityLevel,
@@ -267,6 +290,8 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             insertTrackedDataUseCase(entity)
             hrList.clear()
+            ibiList.clear()
+            accelList.clear()
             startTime = LocalDateTime.now() // 새 추적 세션 시작 시간 초기화
             _stopSignal.value = true
 

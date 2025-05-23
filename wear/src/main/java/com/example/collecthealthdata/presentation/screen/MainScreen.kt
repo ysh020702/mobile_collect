@@ -79,13 +79,14 @@ fun MainScreen(
                 }
                 item { Divider(color = dividerColor, thickness = 1.dp) }
             } else {
+                /*주제: 흡연 상황에 따라 */
                 item {
-                    MenuItem(text = "피고 싶을 때 시작", onClick = { onStart(true) })
+                    MenuItem(text = "담배 피기 시작할 때\n(담배 피기 전 측정 시작)", onClick = { onStart(true) })
                 }
                 item { Divider(color = dividerColor, thickness = 1.dp) }
 
                 item {
-                    MenuItem(text = "안 피고 싶을 때 시작", onClick = { onStart(false) })
+                    MenuItem(text = "담배 피지 않을 때", onClick = { onStart(false) })
                 }
                 item { Divider(color = dividerColor, thickness = 1.dp) }
 

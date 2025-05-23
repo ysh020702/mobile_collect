@@ -12,6 +12,7 @@ class HelpFunctions {
                 craving = entity.craving,
                 hrDataString = entity.hrDataString,
                 ibiDataString = entity.ibiDataString,
+                accelDataString = entity.accelDataString,
                 spo2Value = entity.spo2Value,
                 spo2MeasuredAt = entity.spo2MeasuredAt,
                 recentActivityLevel = entity.recentActivityLevel,
