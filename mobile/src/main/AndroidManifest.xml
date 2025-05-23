@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:name=".CollectHealthDataApp"
         android:allowBackup="false"
@@ -13,6 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CollectHealthData"
         tools:targetApi="31">
+
 
         <service
             android:name=".data.DataListenerService"
