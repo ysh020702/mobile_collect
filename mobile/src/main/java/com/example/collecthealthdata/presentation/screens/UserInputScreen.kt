@@ -10,7 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
-import com.example.collecthealthdata.data.User
+import com.example.collecthealthdata.domain.User
 
 @Composable
 fun UserInputScreen(user: User, onSave: (User) -> Unit) {

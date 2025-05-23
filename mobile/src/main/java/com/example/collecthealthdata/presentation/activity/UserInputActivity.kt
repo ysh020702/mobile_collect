@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.*
 import com.example.collecthealthdata.presentation.screens.UserInputScreen
-import com.example.collecthealthdata.data.User
+import com.example.collecthealthdata.domain.User
 import com.google.firebase.Firebase
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database

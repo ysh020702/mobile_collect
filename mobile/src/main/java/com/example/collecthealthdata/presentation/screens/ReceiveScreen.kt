@@ -15,8 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.collecthealthdata.data.TrackedDataEntity
-import com.example.collecthealthdata.data.User
+import com.example.collecthealthdata.domain.TrackedDataEntity
 
 @Composable
 fun ReceiveScreen(

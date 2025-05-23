@@ -18,7 +18,7 @@
 
 
         <service
-            android:name=".data.DataListenerService"
+            android:name=".domain.DataListenerService"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />

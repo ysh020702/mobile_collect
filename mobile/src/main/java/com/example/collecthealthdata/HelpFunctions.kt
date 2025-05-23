@@ -1,6 +1,6 @@
 package com.example.collecthealthdata
 
-import com.example.collecthealthdata.data.TrackedDataEntity
+import com.example.collecthealthdata.domain.TrackedDataEntity
 import kotlinx.serialization.json.Json
 
 class HelpFunctions {

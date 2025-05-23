@@ -4,15 +4,16 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.collecthealthdata.data.local.TrackedDataEntity
-import com.example.collecthealthdata.domain.repositoryimpl.ConnectionMessage
-import com.example.collecthealthdata.domain.repositoryimpl.TrackerMessage
-import com.example.collecthealthdata.data.TrackedData
-import com.example.collecthealthdata.domain.SpO2ResultStore
-import com.example.collecthealthdata.domain.usecase.*
-import com.example.collecthealthdata.domain.usecase.roomDB.DeleteAllTrackedDataUseCase
-import com.example.collecthealthdata.domain.usecase.roomDB.GetTrackedDataUseCase
-import com.example.collecthealthdata.domain.usecase.roomDB.InsertTrackedDataUseCase
+import com.example.collecthealthdata.domain.local.TrackedDataEntity
+import com.example.collecthealthdata.data.repositoryimpl.ConnectionMessage
+import com.example.collecthealthdata.data.repositoryimpl.TrackerMessage
+import com.example.collecthealthdata.domain.TrackedData
+import com.example.collecthealthdata.domain.local.AccelData
+import com.example.collecthealthdata.data.SpO2ResultStore
+import com.example.collecthealthdata.data.usecase.*
+import com.example.collecthealthdata.data.usecase.roomDB.DeleteAllTrackedDataUseCase
+import com.example.collecthealthdata.data.usecase.roomDB.GetTrackedDataUseCase
+import com.example.collecthealthdata.data.usecase.roomDB.InsertTrackedDataUseCase
 import com.samsung.android.service.health.tracking.HealthTrackerException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlin.toString
 
@@ -65,8 +65,9 @@ class MainViewModel @Inject constructor(
 
 
     private var Craving = false
-    private var hrList = ArrayList<Int>()
-    private var ibiList = ArrayList<Int>()
+    private var hrList = mutableListOf<Int>()
+    private var ibiList = mutableListOf<Int>()
+    private var accelList = mutableListOf<AccelData>()
     private var spo2Value = 0
     private var spo2MeasuredAt = 0L
     private var recentActivityLevel = 0f
@@ -140,7 +141,11 @@ class MainViewModel @Inject constructor(
         Log.i(TAG, "startTracking()")
         if (areTrackingCapabilitiesAvailableUseCase()) {
             trackingJob = viewModelScope.launch {
+                //자식 JOB 1 -> 가속도 센서 측정
+                launch{
 
+                }
+                //자식 JOB 2 -> 심박수 센서 측정
                 //측정 시작 시간 저장 및 HRlist초기화
                 Craving = craving                           //담배 피고 싶은 욕구
                 startTime = LocalDateTime.now()             //측정 시작 시간
@@ -158,6 +163,7 @@ class MainViewModel @Inject constructor(
                             Log.i(TAG, "TrackerMessage.DataReceivedMessage")
                         }
 
+                        //아래는 정상적인 메시지가 아닌 경우 오류 처리
                         is TrackerMessage.FlushCompletedMessage -> {
                             Log.i(TAG, "TrackerMessage.FlushCompletedMessage")
                             _trackingState.value = TrackingState(
@@ -203,6 +209,7 @@ class MainViewModel @Inject constructor(
             )
         }
     }
+
 
     private fun processExerciseUpdate(trackedData: TrackedData) {
         //TODO: 여기가 실제 TrackedData처리되는 구간!! 여기서 데이터베이스 넣는 로직

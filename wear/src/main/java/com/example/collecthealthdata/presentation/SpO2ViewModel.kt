@@ -1,19 +1,15 @@
 package com.example.collecthealthdata.presentation
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.collecthealthdata.data.SpO2Status
-import com.example.collecthealthdata.domain.SpO2ResultStore
-import com.example.collecthealthdata.domain.repositoryimpl.ConnectionMessage
-import com.example.collecthealthdata.domain.repositoryimpl.HealthTrackingServiceConnection
-import com.example.collecthealthdata.domain.usecase.MakeConnectionToHealthTrackingServiceUseCase
+import com.example.collecthealthdata.domain.SpO2Status
+import com.example.collecthealthdata.data.SpO2ResultStore
+import com.example.collecthealthdata.data.repositoryimpl.HealthTrackingServiceConnection
 import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.HealthTrackingService
 import com.samsung.android.service.health.tracking.data.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
