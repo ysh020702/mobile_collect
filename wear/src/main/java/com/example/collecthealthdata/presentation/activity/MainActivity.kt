@@ -1,21 +1,25 @@
 package com.example.collecthealthdata.presentation.activity
 
-import android.annotation.SuppressLint
+import android.Manifest
+import android.app.Activity
+import androidx.compose.runtime.getValue
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import com.example.collecthealthdata.R
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.collecthealthdata.R
 import com.example.collecthealthdata.presentation.MainViewModel
 import com.example.collecthealthdata.presentation.SpO2ViewModel
 import com.example.collecthealthdata.presentation.screen.MainScreen
@@ -24,15 +28,8 @@ import com.example.collecthealthdata.presentation.screen.SpO2Screen
 import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "MainActivity"
-/*
-wear os 사용하면서 느낀 점..
-안드로이드 워치 앱 개발은 많은 걸 하면 안 됨..
-성능 개 느리고
-부팅해서 와이파이 연결하는 데만 배터리 2프로 잡아먹음
+private const val SENSOR_PERMISSION_REQUEST_CODE = 100
 
-그냥 OS자체가 이 워치의 낮은 성능을 받쳐주지 못하는 느낌
-앱에서 뭘 하는 순간 배터리 타임이 확 짧아짐
- */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -52,23 +49,20 @@ class MainActivity : ComponentActivity() {
             } else {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
+
             LaunchedEffect(Unit) {
-                viewModel
-                    .messageSentToast
-                    .collect { message ->
-                        Toast.makeText(
-                            applicationContext,
-                            if (message) R.string.sending_success else R.string.sending_failed,
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    }
+                viewModel.messageSentToast.collect { message ->
+                    Toast.makeText(
+                        applicationContext,
+                        if (message) R.string.sending_success else R.string.sending_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
-            Log.i(
-                TAG, "connected: ${connectionState.connected}, " +
-                        "message: ${connectionState.message}, " +
-                        "connectionException: ${connectionState.connectionException}"
-            )
+
+            Log.i(TAG, "connected: ${connectionState.connected}, message: ${connectionState.message}")
             connectionState.connectionException?.resolve(this)
+
             Permission {
                 NavHost(navController = navController, startDestination = "main") {
                     composable("main") {
@@ -80,9 +74,9 @@ class MainActivity : ComponentActivity() {
                             trackingMessage = trackingState.message,
                             valueHR = trackingState.valueHR,
                             valueIBI = trackingState.valueIBI,
-                            onStart = { craving ->
-                                viewModel.startTracking(craving)
-                                Log.i(TAG, "startTracking($craving)")
+                            onStart = { vaping, cravingLevel ->
+                                viewModel.startTracking(vaping, cravingLevel)
+                                Log.i(TAG, "startTracking($vaping, $cravingLevel)")
                             },
                             onStop = {
                                 viewModel.stopTracking()
@@ -110,10 +104,50 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (!viewModel.connectionState.value.connected) {
+    override fun onStart() {
+        super.onStart()
+
+        if (!hasSensorPermissions()) {
+            requestSensorPermissions()
+        } else {
             viewModel.setUpTracking()
         }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == SENSOR_PERMISSION_REQUEST_CODE) {
+            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                viewModel.setUpTracking()
+            } else {
+                Toast.makeText(this, "센서 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // 권한 확인
+    private fun hasSensorPermissions(): Boolean {
+        val activityGranted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACTIVITY_RECOGNITION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val bodyGranted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.BODY_SENSORS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        return activityGranted && bodyGranted
+    }
+
+    // 권한 요청
+    private fun requestSensorPermissions() {
+        val permissions = arrayOf(
+            Manifest.permission.ACTIVITY_RECOGNITION,
+            Manifest.permission.BODY_SENSORS
+        )
+
+        ActivityCompat.requestPermissions(this, permissions, SENSOR_PERMISSION_REQUEST_CODE)
     }
 }

@@ -11,6 +11,7 @@ import com.example.collecthealthdata.domain.TrackedData
 import com.example.collecthealthdata.domain.local.AccelData
 import com.example.collecthealthdata.data.SpO2ResultStore
 import com.example.collecthealthdata.data.repositoryimpl.AccelTrackerMessage
+import com.example.collecthealthdata.data.repositoryimpl.HealthTrackingServiceConnection
 import com.example.collecthealthdata.data.usecase.*
 import com.example.collecthealthdata.data.usecase.roomDB.DeleteAllTrackedDataUseCase
 import com.example.collecthealthdata.data.usecase.roomDB.GetTrackedDataUseCase
@@ -18,7 +19,10 @@ import com.example.collecthealthdata.data.usecase.roomDB.InsertTrackedDataUseCas
 import com.samsung.android.service.health.tracking.HealthTrackerException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +38,8 @@ private const val TAG = "MainViewModel"
 private const val TRACKING_DURATION_LIMIT = 30
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
+@Inject constructor(
     private val makeConnectionToHealthTrackingServiceUseCase: MakeConnectionToHealthTrackingServiceUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val stopTrackingUseCase: StopTrackingUseCase,
@@ -45,6 +50,7 @@ class MainViewModel @Inject constructor(
     private val resultStore: SpO2ResultStore,
     private val trackingUseCase: TrackingUseCase,
     private val accelerometerUseCase: AccelerometerUseCase,
+    private val healthTrackingServiceConnection: HealthTrackingServiceConnection,
     @ApplicationContext context: Context
 ): ViewModel() {
     //Set up Our Invironment
@@ -68,7 +74,8 @@ class MainViewModel @Inject constructor(
     val connectionState: StateFlow<ConnectionState> = _connectionState
 
 
-    private var craving = false
+    private var cravingLevel = -1               //0~10사이의 값인데, -1이면 결측치
+    private var vaping = false
     private var hrList = mutableListOf<Int>()
     private var ibiList = mutableListOf<Int>()
     private var accelList = mutableListOf<AccelData>()
@@ -139,96 +146,120 @@ class MainViewModel @Inject constructor(
     }
 
     private var trackingJob: Job? = null
-    fun startTracking(cravingState : Boolean) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun startTracking(vapingState: Boolean, cravingLevelState: Int) {
         trackingJob?.cancel()
         Log.i(TAG, "startTracking()")
-        if (areTrackingCapabilitiesAvailableUseCase()) {
-            trackingJob = viewModelScope.launch {
-                //자식 JOB 1 -> 가속도 센서 측정
-                launch{
-                    accelerometerUseCase().collect { trackerMessage ->
 
-                        when (trackerMessage){
-                            is AccelTrackerMessage.DataMessage -> {
-                                val acc = trackerMessage.data
-                                Log.d("ACC", "x=${acc.x}, y=${acc.y}, z=${acc.z}")
-                            }
+        trackingJob = viewModelScope.launch {
+            healthTrackingServiceConnection.connectionFlow.collect { message ->
+                when (message) {
+                    is ConnectionMessage.ConnectionSuccessMessage -> {
+                        Log.i(TAG, "HealthTrackingService connected. Starting sensor tracking...")
 
-                            is AccelTrackerMessage.FlushCompletedMessage -> {
-                                Log.i(TAG, "TrackerMessage.FlushCompletedMessage")
-                            }
-
-                            is AccelTrackerMessage.TrackerErrorMessage -> {
-                                Log.i(TAG, "TrackerMessage.TrackerErrorMessage")
-                            }
-
-                        }
-                    }
-                }
-                //자식 JOB 2 -> 심박수 센서 측정
-                //측정 시작 시간 저장 및 HRlist초기화
-                craving = cravingState                      //담배 피고 싶은 욕구
-                startTime = LocalDateTime.now()             //측정 시작 시간
-                hrList = ArrayList<Int>()                   //심박수 배열
-                ibiList = ArrayList<Int>()                  //심박 간 간격 배열
-
-                Log.i(TAG, "startTime updated $startTime")
-
-                trackingUseCase().collect { trackerMessage ->
-                    when (trackerMessage) {
-                        //여기서부터 실제 트래킹 시작, 한 데이터포인트마다 trackerMessage가 들어
-                        is TrackerMessage.DataMessage -> {
-                            //제대로 들어온 데이터이면
-                            processExerciseUpdate(trackerMessage.trackedData)
-                            Log.i(TAG, "TrackerMessage.DataReceivedMessage")
-                        }
-
-                        //아래는 정상적인 메시지가 아닌 경우 오류 처리
-                        is TrackerMessage.FlushCompletedMessage -> {
-                            Log.i(TAG, "TrackerMessage.FlushCompletedMessage")
-                            _trackingState.value = TrackingState(
-                                trackingRunning = false,
-                                trackingError = false,
-                                valueHR = "-",
-                                valueIBI = arrayListOf(),
-                                message = ""
-                            )
-                        }
-
-                        is TrackerMessage.TrackerErrorMessage -> {
-                            Log.i(TAG, "TrackerMessage.TrackerErrorMessage")
+                        if (!areTrackingCapabilitiesAvailableUseCase()) {
                             _trackingState.value = TrackingState(
                                 trackingRunning = false,
                                 trackingError = true,
                                 valueHR = "-",
                                 valueIBI = arrayListOf(),
-                                message = trackerMessage.trackerError
+                                message = "Tracking capabilities not available"
                             )
+                            return@collect
                         }
 
-                        is TrackerMessage.TrackerWarningMessage -> {
-                            Log.i(TAG, "TrackerMessage.TrackerWarningMessage")
-                            _trackingState.value = TrackingState(
-                                trackingRunning = true,
-                                trackingError = false,
-                                valueHR = "-",
-                                valueIBI = currentIBI,
-                                message = trackerMessage.trackerWarning
-                            )
+                        // 별도 스코프로 가속도 센서 시작
+                        launch(SupervisorJob() + Dispatchers.Default) {
+                            accelerometerUseCase().collect { trackerMessage ->
+                                when (trackerMessage) {
+                                    is AccelTrackerMessage.DataMessage -> {
+                                        val acc = trackerMessage.data
+                                        accelList.add(acc)
+                                        Log.d(TAG, "Acc: x=${acc.x}, y=${acc.y}, z=${acc.z}")
+                                    }
+
+                                    is AccelTrackerMessage.FlushCompletedMessage -> {
+                                        Log.i(TAG, "ACC Tracker FlushCompleted")
+                                    }
+
+                                    is AccelTrackerMessage.TrackerErrorMessage -> {
+                                        Log.e(TAG, "ACC Tracker Error: ${trackerMessage.error}")
+                                    }
+                                }
+                            }
                         }
+
+                        //  별도 스코프로 심박수 센서 시작
+                        launch(SupervisorJob() + Dispatchers.Default) {
+                            cravingLevel = cravingLevelState
+                            vaping = vapingState
+                            startTime = LocalDateTime.now()
+                            hrList = arrayListOf()
+                            ibiList = arrayListOf()
+
+                            Log.i(TAG, "startTime updated $startTime")
+
+                            trackingUseCase().collect { trackerMessage ->
+                                when (trackerMessage) {
+                                    is TrackerMessage.DataMessage -> {
+                                        processExerciseUpdate(trackerMessage.trackedData)
+                                        Log.i(TAG, "TrackerMessage.DataReceivedMessage")
+                                    }
+
+                                    is TrackerMessage.FlushCompletedMessage -> {
+                                        _trackingState.value = TrackingState(
+                                            trackingRunning = false,
+                                            trackingError = false,
+                                            valueHR = "-",
+                                            valueIBI = arrayListOf(),
+                                            message = ""
+                                        )
+                                    }
+
+                                    is TrackerMessage.TrackerErrorMessage -> {
+                                        _trackingState.value = TrackingState(
+                                            trackingRunning = false,
+                                            trackingError = true,
+                                            valueHR = "-",
+                                            valueIBI = arrayListOf(),
+                                            message = trackerMessage.trackerError
+                                        )
+                                    }
+
+                                    is TrackerMessage.TrackerWarningMessage -> {
+                                        _trackingState.value = TrackingState(
+                                            trackingRunning = true,
+                                            trackingError = false,
+                                            valueHR = "-",
+                                            valueIBI = currentIBI,
+                                            message = trackerMessage.trackerWarning
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    is ConnectionMessage.ConnectionFailedMessage -> {
+                        Log.e(TAG, "Health service connection failed: ${message.exception}")
+                        _trackingState.value = TrackingState(
+                            trackingRunning = false,
+                            trackingError = true,
+                            valueHR = "-",
+                            valueIBI = arrayListOf(),
+                            message = "Health Tracking Service connection failed"
+                        )
+                    }
+
+                    is ConnectionMessage.ConnectionEndedMessage -> {
+                        Log.w(TAG, "Health service connection ended.")
                     }
                 }
             }
-        } else {
-            _trackingState.value = TrackingState(
-                trackingRunning = false,
-                trackingError = true,
-                valueHR = "-",
-                valueIBI = arrayListOf(),
-                message = "HR tracking capabilities not available"
-            )
         }
     }
+
+
 
 
     private fun processExerciseUpdate(trackedData: TrackedData) {
@@ -265,13 +296,14 @@ class MainViewModel @Inject constructor(
 
             val(spo2MeasuredAt, spo2Value) = resultStore.loadSpO2()
             val accelDataString = accelList.joinToString(";") {
-                "${it.x},${it.y},${it.z},${it.timestamp}"
+                "${it.x},${it.y},${it.z}"
             }
 
             //데이터를 저장
             endTime = LocalDateTime.now()
             val trackedEntity = TrackedDataEntity(
-                craving = craving,
+                vaping = vaping,
+                cravingLevel = cravingLevel,
                 hrDataString = hrList.joinToString(","), // e.g. "75,77,80,..."
                 ibiDataString = ibiList.joinToString(","),
                 accelDataString = accelDataString,
@@ -289,6 +321,8 @@ class MainViewModel @Inject constructor(
     private fun saveDataAndStop(entity: TrackedDataEntity) {
         viewModelScope.launch {
             insertTrackedDataUseCase(entity)
+            cravingLevel = -1
+            vaping = false
             hrList.clear()
             ibiList.clear()
             accelList.clear()

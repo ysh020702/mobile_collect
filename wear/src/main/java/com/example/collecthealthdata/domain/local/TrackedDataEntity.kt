@@ -7,7 +7,8 @@ import androidx.room.PrimaryKey
 data class TrackedDataEntity (
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
-    val craving: Boolean, //담배 피고 싶은지?
+    val cravingLevel: Int, //담배 피는 정도
+    val vaping: Boolean, //담배 피는 중인지?
     var hrDataString: String = "", //hr 값을을 ,로 이어붙인 문자열
 
     //추가된 부분

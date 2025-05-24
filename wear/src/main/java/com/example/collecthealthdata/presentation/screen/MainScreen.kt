@@ -30,7 +30,7 @@ fun MainScreen(
     trackingMessage: String,
     valueHR: String,
     valueIBI: ArrayList<Int>,
-    onStart: (Boolean) -> Unit,
+    onStart: (Boolean, Int) -> Unit,
     onStop: () -> Unit,
     onSend: () -> Unit,
     onSpO2Click: () -> Unit,
@@ -79,14 +79,18 @@ fun MainScreen(
                 }
                 item { Divider(color = dividerColor, thickness = 1.dp) }
             } else {
-                /*주제: 흡연 상황에 따라 */
+                /*
+                주제: 현재 담배를 피고 있는지에 따른 생체 데이터를 측정하고,
+                어떤 생체 데이터가 담배 욕구와 밀접한 관련이 있는지
+                그리고 사용자의 행동과 생체 신호로 담배를 피고 싶은 욕구가 있을지, 아니면 현재 담배를 피는지
+                판별하는 딥러닝 모델을 구축*/
                 item {
-                    MenuItem(text = "담배 피기 시작할 때\n(담배 피기 전 측정 시작)", onClick = { onStart(true) })
+                    MenuItem(text = "담배 피기 시작할 때\n(담배 피기 전 측정 시작)", onClick = { onStart(true, -1) })
                 }
                 item { Divider(color = dividerColor, thickness = 1.dp) }
 
                 item {
-                    MenuItem(text = "담배 피지 않을 때", onClick = { onStart(false) })
+                    MenuItem(text = "담배 피지 않을 때", onClick = { onStart(false,-1) })
                 }
                 item { Divider(color = dividerColor, thickness = 1.dp) }
 

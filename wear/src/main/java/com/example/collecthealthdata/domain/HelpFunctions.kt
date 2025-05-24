@@ -9,7 +9,8 @@ class HelpFunctions {
         fun toSerializable(entity : TrackedDataEntity) : TrackedDataSerializable {
             return TrackedDataSerializable(
                 id = entity.id,
-                craving = entity.craving,
+                cravingLevel = entity.cravingLevel,
+                vaping = entity.vaping,
                 hrDataString = entity.hrDataString,
                 ibiDataString = entity.ibiDataString,
                 accelDataString = entity.accelDataString,

@@ -2,6 +2,7 @@ package com.example.collecthealthdata.hilt.di
 
 import android.content.Context
 import androidx.room.Room
+import com.example.collecthealthdata.data.repositoryimpl.AccelerometerTrackingRepositoryImpl
 import com.example.collecthealthdata.domain.local.AppDatabase
 import com.example.collecthealthdata.domain.local.TrackedDataDao
 import com.example.collecthealthdata.domain.repository.CapabilityRepository
@@ -16,6 +17,7 @@ import com.example.collecthealthdata.data.repositoryimpl.TrackingRepositoryImpl
 import com.example.collecthealthdata.data.usecase.roomDB.DeleteAllTrackedDataUseCase
 import com.example.collecthealthdata.data.usecase.roomDB.GetTrackedDataUseCase
 import com.example.collecthealthdata.data.usecase.roomDB.InsertTrackedDataUseCase
+import com.example.collecthealthdata.domain.repository.AccelerometerTrackingRepository
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Wearable
@@ -105,6 +107,18 @@ object AppModule {
     ): TrackingRepository {
         return TrackingRepositoryImpl(coroutineScope, healthTrackingServiceConnection, context)
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Provides
+    @Singleton
+    fun provideAccelTrackingRepository(
+        coroutineScope: CoroutineScope,
+        healthTrackingServiceConnection: HealthTrackingServiceConnection,
+        @ApplicationContext context: Context
+    ): AccelerometerTrackingRepository {
+        return AccelerometerTrackingRepositoryImpl(coroutineScope, healthTrackingServiceConnection, context)
+    }
+
 
     @Provides
     @Singleton

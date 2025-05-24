@@ -1,8 +1,10 @@
 package com.example.collecthealthdata.data.repositoryimpl
 import android.content.Context
+import android.util.Log
 import com.example.collecthealthdata.domain.local.AccelData
 import com.example.collecthealthdata.domain.repository.AccelerometerTrackingRepository
 import com.samsung.android.service.health.tracking.HealthTracker
+import com.samsung.android.service.health.tracking.HealthTrackingService
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.ValueKey
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val TAG = "AccelerometerTrackingRepositoryImpl"
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @Singleton
 class AccelerometerTrackingRepositoryImpl  @Inject constructor(
@@ -25,22 +29,33 @@ class AccelerometerTrackingRepositoryImpl  @Inject constructor(
 ) : AccelerometerTrackingRepository {
 
     private val trackingType = HealthTrackerType.ACCELEROMETER_CONTINUOUS
-    private var accelTracker: HealthTracker? = null
     private var listenerSet = false
+    private var healthTrackingService: HealthTrackingService? = null
+
+
+    private var accelTracker: HealthTracker? = null
 
     override suspend fun track(): Flow<AccelTrackerMessage> = callbackFlow {
+        healthTrackingService = healthTrackingServiceConnection.getHealthTrackingService()
+
+        if (!hasCapabilities()) {
+            trySend(AccelTrackerMessage.TrackerErrorMessage("ACCELEROMETER_CONTINUOUS not supported"))
+            close()
+            return@callbackFlow
+        }
+
         val listener = object : HealthTracker.TrackerEventListener {
             override fun onDataReceived(dataPoints: MutableList<DataPoint>) {
                 for (point in dataPoints) {
                     val x = point.getValue(ValueKey.AccelerometerSet.ACCELEROMETER_X)
                     val y = point.getValue(ValueKey.AccelerometerSet.ACCELEROMETER_Y)
                     val z = point.getValue(ValueKey.AccelerometerSet.ACCELEROMETER_Z)
-
-                    val timestamp = System.currentTimeMillis()
+                    //Log.i(TAG, "x: $x, y: $y, z: $z")
+                    //val timestamp = System.currentTimeMillis()
 
                     coroutineScope.runCatching {
                         trySendBlocking(
-                            AccelTrackerMessage.DataMessage(AccelData(x, y, z, timestamp))
+                            AccelTrackerMessage.DataMessage(AccelData(x, y, z))
                         )
                     }
                 }
@@ -61,10 +76,9 @@ class AccelerometerTrackingRepositoryImpl  @Inject constructor(
             }
         }
 
-        accelTracker = healthTrackingServiceConnection.getHealthTrackingService()
-            ?.getHealthTracker(trackingType)
-        accelTracker?.setEventListener(listener)
-        listenerSet = true
+        accelTracker = healthTrackingService!!.getHealthTracker(trackingType)
+        setListener(listener)
+
 
         awaitClose {
             accelTracker?.unsetEventListener()
@@ -72,9 +86,19 @@ class AccelerometerTrackingRepositoryImpl  @Inject constructor(
         }
     }
 
+    private fun setListener(listener: HealthTracker.TrackerEventListener) {
+        if (!listenerSet) {
+            accelTracker?.setEventListener(listener)
+            listenerSet = true
+            Log.d(TAG, "Requested trackerType = $trackingType")
+        }
+    }
+
     override fun hasCapabilities(): Boolean {
-        val service = healthTrackingServiceConnection.getHealthTrackingService()
-        return service?.trackingCapability?.supportHealthTrackerTypes?.contains(trackingType) == true
+        Log.i(TAG, "hasCapabilities()")
+        healthTrackingService = healthTrackingServiceConnection.getHealthTrackingService()
+        val trackers = healthTrackingService?.trackingCapability?.supportHealthTrackerTypes
+        return trackers?.contains(trackingType) == true
     }
 }
 

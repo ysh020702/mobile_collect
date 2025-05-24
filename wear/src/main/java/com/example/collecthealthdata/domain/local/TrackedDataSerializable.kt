@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TrackedDataSerializable(
     val id: Int = 0,
-    val craving: Boolean,
+    val cravingLevel: Int,
+    val vaping: Boolean,
     val hrDataString: String = "",
     var ibiDataString: String= "",
     val accelDataString: String = "",
