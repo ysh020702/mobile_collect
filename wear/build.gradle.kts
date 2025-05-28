@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.devtools.ksp)
+    id("com.google.dagger.hilt.android") version "2.50"
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 android {
@@ -16,7 +19,6 @@ android {
         versionName = "1.0"
 
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -37,6 +39,9 @@ android {
         compose = true
     }
 }
+hilt{
+    enableAggregatingTask = false
+}
 
 dependencies {
     implementation(libs.play.services.wearable)
@@ -46,6 +51,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.foundation)
+    // For integration between Wear Compose and Androidx Navigation libraries
+    implementation("androidx.wear.compose:compose-navigation:1.2.1")
+    // For Wear preview annotations
+    implementation("androidx.wear.compose:compose-ui-tooling:1.2.1")
     implementation(libs.androidx.wear.tooling.preview)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
@@ -55,10 +64,39 @@ dependencies {
     implementation(libs.horologist.compose.tools)
     implementation(libs.horologist.tiles)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
+
+
+    //samsung health "sensor" SDK(not samsung Health Data SDK)
+    implementation(files("libs/samsung-health-sensor-api-v1.3.0.aar"))
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.androidx.tiles.tooling)
-    wearApp(project(":wear"))
+
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.runtime.android)
+    ksp("androidx.room:room-compiler:2.6.1")
+
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+
+    // Coroutine
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
+
+    //Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    var hilt_version = 2.51
+    //dagger Hilt
+    implementation("com.google.dagger:hilt-android:$hilt_version")
+    ksp("com.google.dagger:hilt-compiler:$hilt_version")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    //permission
+    implementation ("com.google.accompanist:accompanist-permissions:0.29.2-rc")
 }

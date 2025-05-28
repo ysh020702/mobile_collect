@@ -4,7 +4,45 @@
     This string is used for square devices and overridden by hello_world in
     values-round/strings.xml for round devices.
     -->
-    <string name="hello_world">From the Square world,\nHello, %1$s!</string>
-    <string name="tile_label">Example tile</string>
-    <string name="complication_label">Example complication</string>
+    <string name="hello_world">Square 세계에서,\n안녕하세요, %1$s!</string>
+    <string name="tile_label">예시 타일</string>
+    <string name="complication_label">예시 컴플리케이션</string>
+
+    <string name="ConnectedToHS">건강 추적 서비스에 연결되었습니다.</string>
+    <string name="NoValidHealthPlatform">Health Platform 버전이 오래되었거나 설치되지 않았습니다.</string>
+    <string name="PermissionDeniedPermanently">권한이 거부되었습니다. 워치 설정에서 권한을 허용한 후 앱을 다시 시작하세요.</string>
+    <string name="PermissionDeniedRationale">측정을 위해 신체 센서 권한이 필요합니다.</string>
+    <string name="NoPermission">권한 확인 실패.</string>
+    <string name="SDKPolicyError">SDK 정책에 의해 거부되었습니다.</string>
+    <string name="ConnectionError">건강 추적 서비스에 연결할 수 없습니다. 에러 로그를 확인하세요.</string>
+    <string name="NoSPo2Support">이 기기는 SpO2를 지원하지 않습니다.</string>
+    <string name="SpO2DefaultValue">0</string>
+    <string name="StatusDefaultValue">SpO2 측정을 시작하려면 측정 버튼을 누르세요.</string>
+    <string name="StatusCalculating">계산 중…</string>
+    <string name="StatusDeviceMoving">기기가 움직이고 있습니다.</string>
+    <string name="StatusLowSignal">신호 품질이 낮습니다.</string>
+    <string name="StatusCompleted">측정이 완료되었습니다.</string>
+    <string name="SpO2Value">SpO2 값: </string>
+    <string name="StopLabel">중지</string>
+    <string name="StartLabel">측정</string>
+    <string name="TxtPercent">%</string>
+    <string name="MeasurementFailed">측정에 실패했습니다. 워치를 단단히 착용하고 다시 시도하세요.</string>
+
+    <string name="hts_connected">건강 추적 서비스에 연결됨</string>
+    <string name="start_button">시작</string>
+    <string name="stop_button">중지</string>
+    <string name="send_button">전송</string>
+    <string name="error_initial_state">초기 심박수 상태</string>
+    <string name="error_wearable_movement_detected">워치 움직임이 감지되었습니다. 가만히 있어 주세요.</string>
+    <string name="error_low_ppg_signal_even_more">PPG 신호가 약합니다. 움직이지 마세요.</string>
+    <string name="error_low_ppg_signal">PPG 신호가 약합니다. 움직이지 마세요.</string>
+    <string name="error_wearable_detached">워치가 벗겨졌습니다.</string>
+    <string name="error_other_sensor_running">우선순위가 더 높은 센서가 실행 중입니다.</string>
+    <string name="PERMISSION_ERROR">필요한 권한이 없습니다.</string>
+    <string name="SDK_POLICY_ERROR">정책 오류입니다. 개발자 모드를 활성화하세요.</string>
+    <string name="sending_failed">주변에 전송할 수 있는 장치가 없습니다.</string>
+    <string name="sending_success">데이터가 전송되었습니다.</string>
+    <string name="warming_up">워밍업 중…</string>
+    <string name="permission_should_show_rationale">앱을 사용하려면 앱 설정에서 신체 센서 권한을 허용해야 합니다.</string>
+    <string name="permission_permanently_denied">신체 센서가 사용 불가합니다. 필요한 권한을 허용하지 않았습니다.</string>
 </resources>
