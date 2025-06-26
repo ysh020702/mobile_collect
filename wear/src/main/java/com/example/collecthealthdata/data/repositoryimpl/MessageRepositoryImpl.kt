@@ -16,13 +16,18 @@ class MessageRepositoryImpl @Inject constructor(
 
     override suspend fun sendMessage(message: String, node: Node, messagePath: String): Boolean {
         val nodeId = node.id
+        val dataBytes = message.toByteArray(charset = Charset.defaultCharset())
+        val dataSize = dataBytes.size
+
+        // 로그로 데이터 크기 출력
+        Log.i(TAG, "Sending data size: $dataSize bytes")
         var result = false
         nodeId.also { id ->
             messageClient
                 .sendMessage(
                     id,
                     messagePath,
-                    message.toByteArray(charset = Charset.defaultCharset())
+                    dataBytes
                 ).apply {
                     addOnSuccessListener {
                         Log.i(TAG, "sendMessage OnSuccessListener")
@@ -33,7 +38,7 @@ class MessageRepositoryImpl @Inject constructor(
                         result = false
                     }
                 }.await()
-            Log.i(TAG, "result: $result")
+            Log.i(TAG, "Result: $result")
             return result
         }
     }

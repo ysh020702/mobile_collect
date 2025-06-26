@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.collecthealthdata.domain.local.TrackedDataEntity
 import com.example.collecthealthdata.data.repositoryimpl.ConnectionMessage
 import com.example.collecthealthdata.data.repositoryimpl.TrackerMessage
@@ -175,7 +176,7 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                                     is AccelTrackerMessage.DataMessage -> {
                                         val acc = trackerMessage.data
                                         accelList.add(acc)
-                                        Log.d(TAG, "Acc: x=${acc.x}, y=${acc.y}, z=${acc.z}")
+                                        //Log.d(TAG, "Acc: x=${acc.x}, y=${acc.y}, z=${acc.z}")
                                     }
 
                                     is AccelTrackerMessage.FlushCompletedMessage -> {
@@ -331,6 +332,10 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
             delay(100) // 살짝 delay 주고
             _stopSignal.value = false // 다시 false로 리셋        }
+        }
+
+        viewModelScope.launch{
+            sendMessage()
         }
     }
 

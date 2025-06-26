@@ -52,8 +52,45 @@ class MainActivity : ComponentActivity() {
         //init
         initialize()
         checkAndRequestAudioPermission()
+        handleIntent(intent) // 👈 추가
         setContent {
             MainScreenWithUser(context, userId, database)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == RECORD_AUDIO_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("Permission", "사용자가 녹음 권한을 허용함")
+                Toast.makeText(this, "녹음 권한이 허용되었습니다.", Toast.LENGTH_SHORT).show()
+            } else {
+                Log.e("Permission", "사용자가 녹음 권한을 거부함")
+                Toast.makeText(this, "녹음 권한이 거부되었습니다. 기능이 제한될 수 있습니다.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        intent?.getStringExtra("message")?.let { message ->
+            Log.d("MainActivity", "Received message: $message")
+
+            val trackedData = decodeMessage(message)
+            if (userId == "") userId = "anonymous"
+
+            lifecycleScope.launch {
+                trackedDataRepository.saveData(userId, trackedData)
+            }
         }
     }
 
@@ -84,41 +121,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == RECORD_AUDIO_PERMISSION_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("Permission", "사용자가 녹음 권한을 허용함")
-                Toast.makeText(this, "녹음 권한이 허용되었습니다.", Toast.LENGTH_SHORT).show()
-            } else {
-                Log.e("Permission", "사용자가 녹음 권한을 거부함")
-                Toast.makeText(this, "녹음 권한이 거부되었습니다. 기능이 제한될 수 있습니다.", Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-
-    override fun onNewIntent(intent : Intent?){
-        super.onNewIntent(intent)
-        intent?.getStringExtra("message")?.let { message ->
-            Log.d("MainActivity", "Received message via onNewIntent: $message")
-
-            //string -> List<TrackedDataEntity> 로 decode
-            var trackedData = decodeMessage(message)
-
-            //userId 없는 경우 anonymous
-            if(userId=="") userId="anonymous"
-
-            //firebase와 동기화
-            lifecycleScope.launch {
-                trackedDataRepository.saveData(userId, trackedData)
-            }
-        }
-    }
 }
 
 @Composable
