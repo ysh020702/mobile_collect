@@ -32,11 +32,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.Collections
 import javax.inject.Inject
 import kotlin.toString
 
 private const val TAG = "MainViewModel"
-private const val TRACKING_DURATION_LIMIT = 30
+private const val INTERVAL_SEC = 15_000L
+private const val MAX_REPEAT = 6
 
 @HiltViewModel
 class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
@@ -77,11 +79,11 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
     private var cravingLevel = -1               //0~10사이의 값인데, -1이면 결측치
     private var vaping = false
-    private var hrList = mutableListOf<Int>()
-    private var ibiList = mutableListOf<Int>()
-    private var accelList = mutableListOf<AccelData>()
-    private var spo2Value = 0
-    private var spo2MeasuredAt = 0L
+    private var accelList = Collections.synchronizedList(mutableListOf<AccelData>())
+    private var hrList = Collections.synchronizedList(mutableListOf<Int>())
+    private var ibiList = Collections.synchronizedList(mutableListOf<Int>())
+    //private var spo2Value = 0
+    //private var spo2MeasuredAt = 0L
     private var recentActivityLevel = 0f
     private var startTime: LocalDateTime? = null
     private var endTime: LocalDateTime? = null
@@ -171,6 +173,8 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
                         // 별도 스코프로 가속도 센서 시작
                         launch(SupervisorJob() + Dispatchers.Default) {
+                            accelList = Collections.synchronizedList(mutableListOf())
+
                             accelerometerUseCase().collect { trackerMessage ->
                                 when (trackerMessage) {
                                     is AccelTrackerMessage.DataMessage -> {
@@ -195,8 +199,8 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                             cravingLevel = cravingLevelState
                             vaping = vapingState
                             startTime = LocalDateTime.now()
-                            hrList = arrayListOf()
-                            ibiList = arrayListOf()
+                            hrList = Collections.synchronizedList(mutableListOf())
+                            ibiList = Collections.synchronizedList(mutableListOf())
 
                             Log.i(TAG, "startTime updated $startTime")
 
@@ -239,6 +243,8 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                                 }
                             }
                         }
+
+                        startSavingLoop()
                     }
 
                     is ConnectionMessage.ConnectionFailedMessage -> {
@@ -259,8 +265,6 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
             }
         }
     }
-
-
 
 
     private fun processExerciseUpdate(trackedData: TrackedData) {
@@ -286,56 +290,66 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
             valueIBI = ibi,
             message = ""
         )
+    }
 
-        val now = LocalDateTime.now()
-        val duration = Duration.between(startTime, now)
-        if (duration.seconds >= TRACKING_DURATION_LIMIT) {
-            //TODO: 위 3개의 값을 앱에 저장된 대로 받아올 것!!!
-            spo2Value = 0
-            spo2MeasuredAt = 0L
-            recentActivityLevel = 0f
+    private fun startSavingLoop() {
+        viewModelScope.launch {
+            repeat(MAX_REPEAT) { count ->
+                startTime = LocalDateTime.now()
+                delay(INTERVAL_SEC)
 
-            val(spo2MeasuredAt, spo2Value) = resultStore.loadSpO2()
-            val accelDataString = accelList.joinToString(";") {
-                "${it.x},${it.y},${it.z}"
+                val (spo2MeasuredAt, spo2Value) = resultStore.loadSpO2()
+                val accelDataString = accelList.joinToString(";") { "${it.x},${it.y},${it.z}" }
+
+                val trackedEntity = TrackedDataEntity(
+                    vaping = vaping,
+                    cravingLevel = cravingLevel,
+                    hrDataString = hrList.joinToString(","),
+                    ibiDataString = ibiList.joinToString(","),
+                    accelDataString = accelDataString,
+                    spo2Value = spo2Value,
+                    spo2MeasuredAt = spo2MeasuredAt,
+                    recentActivityLevel = recentActivityLevel,
+                    startTime = startTime?.toString() ?: "",
+                    endTime = LocalDateTime.now().toString()
+                )
+
+
+                saveData(trackedEntity)
+
+                Log.d(TAG, "${count + 1}번째 저장 완료")
+
+                // 누적 리스트 초기화
+                hrList.clear()
+                ibiList.clear()
+                accelList.clear()
             }
 
-            //데이터를 저장
-            endTime = LocalDateTime.now()
-            val trackedEntity = TrackedDataEntity(
-                vaping = vaping,
-                cravingLevel = cravingLevel,
-                hrDataString = hrList.joinToString(","), // e.g. "75,77,80,..."
-                ibiDataString = ibiList.joinToString(","),
-                accelDataString = accelDataString,
-                spo2Value = spo2Value,
-                spo2MeasuredAt = spo2MeasuredAt,
-                recentActivityLevel = recentActivityLevel,
-                startTime = startTime.toString(),
-                endTime = endTime.toString()
-            )
-
-            saveDataAndStop(trackedEntity)
+            // 6번 저장 후 업로드
+            uploadAfterAllSaved()
+            Log.d(TAG, "자동 업로드 트리거 완료")
         }
     }
 
-    private fun saveDataAndStop(entity: TrackedDataEntity) {
+
+    private fun saveData(entity: TrackedDataEntity) {
         viewModelScope.launch {
             insertTrackedDataUseCase(entity)
-            cravingLevel = -1
-            vaping = false
-            hrList.clear()
-            ibiList.clear()
-            accelList.clear()
+            Log.d(TAG, "Saved one measurement.")
+        }
+    }
+
+    private fun uploadAfterAllSaved() {
+        viewModelScope.launch {
+            sendMessageUseCase() // 자동 전송
+            _messageSentToast.emit(true)
+            Log.d(TAG, "All 6 measurements saved and uploaded.")
+
             startTime = LocalDateTime.now() // 새 추적 세션 시작 시간 초기화
             _stopSignal.value = true
 
             delay(100) // 살짝 delay 주고
-            _stopSignal.value = false // 다시 false로 리셋        }
-        }
-
-        viewModelScope.launch{
-            sendMessage()
+            _stopSignal.value = false // 다시 false로 리셋
         }
     }
 
