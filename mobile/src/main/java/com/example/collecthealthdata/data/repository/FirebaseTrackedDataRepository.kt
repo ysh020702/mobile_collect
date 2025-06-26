@@ -1,8 +1,7 @@
-package com.example.collecthealthdata.data.repositoryImpl
+package com.example.collecthealthdata.data.repository
 
 import android.util.Log
-import com.example.collecthealthdata.domain.TrackedDataEntity
-import com.example.collecthealthdata.domain.repository.TrackedDataRepository
+import com.example.collecthealthdata.data.entity.TrackedDataEntity
 import com.google.firebase.Firebase
 import com.google.firebase.database.database
 import kotlinx.coroutines.tasks.await

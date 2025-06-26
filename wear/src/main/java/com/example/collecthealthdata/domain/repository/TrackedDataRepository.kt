@@ -7,6 +7,7 @@ interface TrackedDataRepository {
     suspend fun insert(entity: TrackedDataEntity)
     fun getAll(): Flow<List<TrackedDataEntity>>
     suspend fun deleteAll()
+    suspend fun deleteById(id: Int)
 }
 
 //data - repository 에 구현체(TrackedDataRepositoryImpl 있음)

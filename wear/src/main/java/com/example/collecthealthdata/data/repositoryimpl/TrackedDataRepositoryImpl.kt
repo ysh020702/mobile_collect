@@ -19,4 +19,7 @@ class TrackedDataRepositoryImpl @Inject constructor(
     override suspend fun deleteAll(){
         dao.deleteAll()
     }
+    override suspend fun deleteById(id: Int){
+        dao.deleteById(id)
+    }
 }

@@ -15,6 +15,7 @@ import com.example.collecthealthdata.data.repositoryimpl.MessageRepositoryImpl
 import com.example.collecthealthdata.data.repositoryimpl.TrackedDataRepositoryImpl
 import com.example.collecthealthdata.data.repositoryimpl.TrackingRepositoryImpl
 import com.example.collecthealthdata.data.usecase.roomDB.DeleteAllTrackedDataUseCase
+import com.example.collecthealthdata.data.usecase.roomDB.DeleteTrackedDataByIdUseCase
 import com.example.collecthealthdata.data.usecase.roomDB.GetTrackedDataUseCase
 import com.example.collecthealthdata.data.usecase.roomDB.InsertTrackedDataUseCase
 import com.example.collecthealthdata.domain.repository.AccelerometerTrackingRepository
@@ -77,6 +78,13 @@ object AppModule {
         repository: TrackedDataRepository
     ): DeleteAllTrackedDataUseCase {
         return DeleteAllTrackedDataUseCase(repository)
+    }
+
+    @Provides
+    fun provideDeleteTrackedDataByIdUseCase(
+        repository: TrackedDataRepository
+    ): DeleteTrackedDataByIdUseCase {
+        return DeleteTrackedDataByIdUseCase(repository)
     }
 
     @Provides

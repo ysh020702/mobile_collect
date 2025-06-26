@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.domain
+package com.example.collecthealthdata.data.entity
 
 import kotlinx.serialization.Serializable
 

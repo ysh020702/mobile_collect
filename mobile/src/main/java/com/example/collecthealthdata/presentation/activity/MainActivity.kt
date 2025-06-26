@@ -23,7 +23,7 @@ import android.Manifest
 import com.example.collecthealthdata.HelpFunctions.Companion.decodeMessage
 import com.example.collecthealthdata.presentation.screens.MainScreen
 import com.example.collecthealthdata.domain.User
-import com.example.collecthealthdata.domain.repository.TrackedDataRepository
+import com.example.collecthealthdata.data.repository.TrackedDataRepository
 import com.google.firebase.Firebase
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.database
