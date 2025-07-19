@@ -80,11 +80,8 @@ fun MainScreen(
             // 왼쪽: 로그아웃 & 계정 삭제 버튼
             Row {
                 Button(onClick = {
-                    unDefinedFeature(context, "로그아웃")
-                    //FirebaseAuth.getInstance().signOut()
-                    //val intent = Intent(context, AuthActivity::class.java)
-                    //intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    //context.startActivity(intent)
+                    //unDefinedFeature(context, "로그아웃")
+                    viewModel.logout(context)
                 }) {
                     Text("로그아웃")
                 }

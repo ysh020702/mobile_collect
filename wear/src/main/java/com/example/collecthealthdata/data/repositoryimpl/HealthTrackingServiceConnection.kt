@@ -27,6 +27,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -89,6 +90,10 @@ class HealthTrackingServiceConnection @Inject constructor(
 
     fun getHealthTrackingService(): HealthTrackingService? {
         return healthTrackingService
+    }
+
+    suspend fun awaitConnected(): Boolean {
+        return connectionFlow.firstOrNull { it is ConnectionMessage.ConnectionSuccessMessage } != null
     }
 }
 
