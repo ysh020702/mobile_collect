@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.presentation.activity
+package com.example.collecthealthdata.presentation.activity.UserInputActivity
 
 import android.content.Context
 import android.os.Bundle
@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.*
-import com.example.collecthealthdata.presentation.screens.UserInputScreen
 import com.example.collecthealthdata.domain.User
 import com.google.firebase.Firebase
 import com.google.firebase.database.DatabaseReference

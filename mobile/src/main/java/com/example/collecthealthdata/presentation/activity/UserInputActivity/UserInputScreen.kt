@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.presentation.screens
+package com.example.collecthealthdata.presentation.activity.UserInputActivity
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions

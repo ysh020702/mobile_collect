@@ -1,4 +1,4 @@
-package com.example.collecthealthdata.presentation.activity
+package com.example.collecthealthdata.presentation.activity.AuthActivity
 
 import android.content.ContentValues.TAG
 import android.content.Intent
@@ -9,31 +9,13 @@ import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.collecthealthdata.presentation.theme.CollectHealthDataTheme
 import com.example.collecthealthdata.domain.User
+import com.example.collecthealthdata.presentation.activity.MainActicity.MainActivity
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -78,7 +60,7 @@ class AuthActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LoginScreen(
+                    AuthScreen(
                         onLoginClick = { email, password -> signIn(email, password) },
                         onSignupClick = { email, password -> signUp(email, password) }
                     )
@@ -192,68 +174,6 @@ class AuthActivity : ComponentActivity() {
     }
 
 }
-
-@Composable
-fun LoginScreen(onLoginClick: (String, String) -> Unit, onSignupClick: (String, String) -> Unit) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var emailError by remember { mutableStateOf(false) }
-    var pwError by remember{ mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        TextField(
-            value = email,
-            onValueChange = {
-                email = it
-                emailError = !isValidEmail(email)            },
-            label = { Text("Email") },
-            isError = emailError,
-            modifier = Modifier.fillMaxWidth()
-        )
-        if(emailError){
-            Text(
-                text = "유효한 이메일 주소를 입력하세요.",
-                color = Color.Red,
-                fontSize = 12.sp,
-                modifier = Modifier.align(Alignment.Start)
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = password,
-            onValueChange = {
-                password = it
-                pwError = !isValidPw(password)
-            },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {onLoginClick(email, password)},
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !emailError && !pwError
-        ) {
-            Text("로그인")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = {onSignupClick(email, password)},
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !emailError && !pwError) {
-            Text("회원가입")
-        }
-    }
-}
-
-
 
 // 이메일 검증 함수
 fun isValidEmail(email: String): Boolean {

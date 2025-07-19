@@ -1,9 +1,11 @@
-package com.example.collecthealthdata.data.entity
+package com.example.collecthealthdata.data.local
 
-import kotlinx.serialization.Serializable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Serializable
+@Entity(tableName = "tracked_data")
 data class TrackedDataEntity (
+    @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
     val cravingLevel: Int, //담배 피는 정도
     val vaping: Boolean, //담배 피는 중인지?

@@ -7,6 +7,7 @@ import android.widget.Toast
 import com.example.collecthealthdata.domain.local.TrackedDataSerializable
 import com.example.collecthealthdata.domain.repository.MessageRepository
 import com.example.collecthealthdata.domain.repository.TrackedDataRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -19,7 +20,7 @@ class SendMessageUseCase @Inject constructor(
     private val messageRepository: MessageRepository,
     private val trackedDataRepository: TrackedDataRepository,
     private val getCapableNodes: GetCapableNodes,
-    @Inject private val context: Context
+    @ApplicationContext private val context: Context
 ) {
     suspend operator fun invoke(): Boolean {
         val nodes = getCapableNodes()
@@ -40,9 +41,9 @@ class SendMessageUseCase @Inject constructor(
         
         var successCount = 0
         for (entity in entityList){
-            val serializable = entityList.map{toSerializable(it)}
-            val message = encodeMessage(serializable)//하나만 보냄
-            
+            val serializable = toSerializable(entity)              // ✔️ 개별 객체만 직렬화
+            val message = encodeMessage(listOf(serializable))      // ✔️ 단일 리스트로 감싸기
+
             val result = messageRepository.sendMessage(message, node, MESSAGE_PATH)
             if (result) {
                 trackedDataRepository.deleteById(entity.id)
