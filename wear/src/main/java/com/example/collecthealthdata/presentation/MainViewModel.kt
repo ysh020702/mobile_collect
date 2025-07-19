@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.Collections
@@ -82,6 +83,7 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
     private var accelList = Collections.synchronizedList(mutableListOf<AccelData>())
     private var hrList = Collections.synchronizedList(mutableListOf<Int>())
     private var ibiList = Collections.synchronizedList(mutableListOf<Int>())
+    private val listMutex: kotlinx.coroutines.sync.Mutex = kotlinx.coroutines.sync.Mutex()
     //private var spo2Value = 0
     //private var spo2MeasuredAt = 0L
     private var recentActivityLevel = 0f
@@ -100,7 +102,8 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
     fun stopTracking() {
         stopTrackingUseCase() //이건 listener unset 밖에 없다
-        trackingJob?.cancel()
+        trackingJob?.cancel() // 센서 수집 Job 취소
+        savingJob?.cancel()   // 저장 루프 Job도 취소
         _trackingState.value = TrackingState(
             trackingRunning = false,
             trackingError = false,
@@ -108,6 +111,7 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
             valueIBI = arrayListOf(),
             message = ""
         )
+        uploadAfterAllSaved()
     }
 
     fun setUpTracking() {
@@ -179,7 +183,9 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                                 when (trackerMessage) {
                                     is AccelTrackerMessage.DataMessage -> {
                                         val acc = trackerMessage.data
-                                        accelList.add(acc)
+                                        listMutex.withLock{
+                                            accelList.add(acc)
+                                        }
                                         //Log.d(TAG, "Acc: x=${acc.x}, y=${acc.y}, z=${acc.z}")
                                     }
 
@@ -267,7 +273,7 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
     }
 
 
-    private fun processExerciseUpdate(trackedData: TrackedData) {
+    private suspend fun processExerciseUpdate(trackedData: TrackedData) {
         //TODO: 여기가 실제 TrackedData처리되는 구간!! 여기서 데이터베이스 넣는 로직
         //TrackedData- Domain.Model.TrackedData
         val hr = trackedData.hr
@@ -277,8 +283,11 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
         currentIBI = ibi
 
         // HR 값 누적 저장 (정상값만)
-        if (hr > 0) {
-            hrList.add(hr)
+        listMutex.withLock {
+            if (hr > 0) {
+                hrList.add(hr)
+            }
+            ibiList.addAll(currentIBI)
         }
         //ibi 값 누적 저장
         ibiList.addAll(currentIBI)
@@ -292,13 +301,14 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
         )
     }
 
-
+    private var savingJob: Job? = null
     private fun startSavingLoop() {
-        viewModelScope.launch {
+        savingJob?.cancel() // 이미 실행 중인 루프가 있으면 취소
+        savingJob = viewModelScope.launch {
             repeat(MAX_REPEAT) { count ->
                 delay(INTERVAL_SEC) // 측정 대기
 
-                if (accelList.isEmpty()) {
+                if (accelList.isEmpty() || hrList.isEmpty() || ibiList.isEmpty()) {
                     Log.w(TAG, "${count + 1}번째 저장 스킵: 가속도 데이터 없음")
                     return@repeat
                 }
@@ -310,13 +320,22 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                 endTime = LocalDateTime.now() // 마지막 저장 끝시간
 
                 val (spo2MeasuredAt, spo2Value) = resultStore.loadSpO2()
-                val accelDataString = accelList.joinToString(";") { "${it.x},${it.y},${it.z}" }
+
+                val accelDataString: String
+                val hrDataString: String
+                val ibiDataString: String
+
+                listMutex.withLock {
+                    accelDataString = accelList.joinToString(";") { "${it.x},${it.y},${it.z}" }
+                    hrDataString = hrList.joinToString(",")
+                    ibiDataString = ibiList.joinToString(",")
+                }
 
                 val trackedEntity = TrackedDataEntity(
                     vaping = vaping,
                     cravingLevel = cravingLevel,
-                    hrDataString = hrList.joinToString(","),
-                    ibiDataString = ibiList.joinToString(","),
+                    hrDataString = hrDataString,
+                    ibiDataString = ibiDataString,
                     accelDataString = accelDataString,
                     spo2Value = spo2Value,
                     spo2MeasuredAt = spo2MeasuredAt,
@@ -329,13 +348,16 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                 Log.d(TAG, "${count + 1}번째 저장 완료")
 
                 // 누적 리스트 초기화
-                hrList.clear()
-                ibiList.clear()
-                accelList.clear()
+                listMutex.withLock {
+                    hrList.clear()
+                    ibiList.clear()
+                    accelList.clear()
+                }
             }
 
-            uploadAfterAllSaved()
+
             Log.d(TAG, "자동 업로드 트리거 완료")
+            stopTracking()
         }
     }
 
