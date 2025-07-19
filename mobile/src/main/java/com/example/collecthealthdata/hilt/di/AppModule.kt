@@ -1,6 +1,7 @@
 package com.example.collecthealthdata.hilt.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.collecthealthdata.data.local.AppDatabase
@@ -14,6 +15,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -43,8 +45,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseRepository(
-        database: DatabaseReference
+        database: DatabaseReference,
+        @Named("user_prefs") userPrefs: SharedPreferences
     ): FirebaseRepository {
-        return FirebaseRepositoryImpl(database)
+        return FirebaseRepositoryImpl(database, userPrefs)
     }
 }

@@ -52,11 +52,6 @@
             android:name=".presentation.activity.MainActicity.MainActivity"
             android:exported="true" />
 
-        <activity
-            android:name=".presentation.activity.ReceiveActivity"
-            android:exported="false"
-            android:theme="@style/Theme.CollectHealthData" />
-
     </application>
 
 </manifest>

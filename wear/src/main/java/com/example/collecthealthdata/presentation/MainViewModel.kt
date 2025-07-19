@@ -37,8 +37,8 @@ import javax.inject.Inject
 import kotlin.toString
 
 private const val TAG = "MainViewModel"
-private const val INTERVAL_SEC = 15_000L
-private const val MAX_REPEAT = 6
+private const val INTERVAL_SEC = 2_000L
+private const val MAX_REPEAT = 120
 
 @HiltViewModel
 class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
@@ -296,8 +296,19 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
     private fun startSavingLoop() {
         viewModelScope.launch {
             repeat(MAX_REPEAT) { count ->
-                startTime = LocalDateTime.now()
-                delay(INTERVAL_SEC)
+                delay(INTERVAL_SEC) // 측정 대기
+
+                if (accelList.isEmpty()) {
+                    Log.w(TAG, "${count + 1}번째 저장 스킵: 가속도 데이터 없음")
+                    return@repeat
+                }
+
+                // 저장할 데이터가 있으므로 시간 갱신
+                if (startTime == null) {
+                    startTime = LocalDateTime.now() // 첫 저장 시작시간
+                }
+                endTime = LocalDateTime.now() // 마지막 저장 끝시간
+
                 val (spo2MeasuredAt, spo2Value) = resultStore.loadSpO2()
                 val accelDataString = accelList.joinToString(";") { "${it.x},${it.y},${it.z}" }
 
@@ -310,13 +321,11 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                     spo2Value = spo2Value,
                     spo2MeasuredAt = spo2MeasuredAt,
                     recentActivityLevel = recentActivityLevel,
-                    startTime = startTime?.toString() ?: "",
-                    endTime = LocalDateTime.now().toString()
+                    startTime = startTime.toString(),
+                    endTime = endTime.toString()
                 )
 
-
                 saveData(trackedEntity)
-
                 Log.d(TAG, "${count + 1}번째 저장 완료")
 
                 // 누적 리스트 초기화
@@ -325,11 +334,11 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                 accelList.clear()
             }
 
-            // 6번 저장 후 업로드
             uploadAfterAllSaved()
             Log.d(TAG, "자동 업로드 트리거 완료")
         }
     }
+
 
 
     private fun saveData(entity: TrackedDataEntity) {
