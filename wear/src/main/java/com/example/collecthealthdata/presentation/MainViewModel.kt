@@ -289,8 +289,8 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
         val now = LocalDateTime.now()
         val duration = Duration.between(startTime, now)
-        if (duration.seconds >= TRACKING_DURATION_LIMIT) {
-            //TODO: 위 3개의 값을 앱에 저장된 대로 받아올 것!!!
+//        if (duration.seconds >= TRACKING_DURATION_LIMIT) {
+        if(accelList.isNotEmpty()){//엑셀 데이터가 들어왔을 때만 저장하도록
             spo2Value = 0
             spo2MeasuredAt = 0L
             recentActivityLevel = 0f
