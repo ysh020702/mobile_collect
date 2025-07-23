@@ -119,7 +119,7 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
     fun setUpTracking() {
         Log.i(TAG, "setUpTracking()")
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             makeConnectionToHealthTrackingServiceUseCase()
                 .collect { connectionMessage ->
                 Log.i(TAG, "makeConnectionToHealthTrackingServiceUseCase().collect")
@@ -160,16 +160,12 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun startTracking(vapingState: Boolean, cravingLevelState: Int) {
-        if (_trackingState.value.trackingRunning || isConnecting) {
-            Log.w(TAG, "Tracking is already running or connecting. Ignoring duplicate start.")
-            return
-        }
 
         isConnecting = true
         Log.i(TAG, "startTracking()")
 
         trackingJob?.cancel()
-        trackingJob = viewModelScope.launch {
+        trackingJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 // 1️⃣ HealthTrackingService 연결될 때까지 suspend 대기
                 val connected = healthTrackingServiceConnection.awaitConnected()
@@ -200,6 +196,8 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                     return@launch
                 }
 
+                startSavingLoop()
+
                 // 3️⃣ 가속도 센서 시작
                 launch(SupervisorJob() + Dispatchers.Default) {
                     accelList = Collections.synchronizedList(mutableListOf())
@@ -220,7 +218,7 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                 }
 
                 // 4️⃣ 심박수 센서 시작
-                launch(SupervisorJob() + Dispatchers.Default) {
+                launch(SupervisorJob() + Dispatchers.IO) {
                     cravingLevel = cravingLevelState
                     vaping = vapingState
                     startTime = LocalDateTime.now()
@@ -266,7 +264,7 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                     }
                 }
 
-                startSavingLoop()
+
                 _trackingState.value = _trackingState.value.copy(trackingRunning = true)
             } finally {
                 isConnecting = false

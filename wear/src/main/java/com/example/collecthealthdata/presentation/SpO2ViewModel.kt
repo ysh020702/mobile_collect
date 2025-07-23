@@ -48,12 +48,11 @@ class SpO2ViewModel @Inject constructor(
 
     fun startMeasurement() {
         healthTrackingService = healthTrackingServiceConnection.getHealthTrackingService()
-        val service = healthTrackingService
-        if (service == null) {
+        if (healthTrackingService == null) {
             Log.e(TAG, "HealthTrackingService is not connected")
             return
         }
-        spo2Tracker = service.getHealthTracker(HealthTrackerType.SPO2_ON_DEMAND)
+        spo2Tracker = healthTrackingService!!.getHealthTracker(HealthTrackerType.SPO2_ON_DEMAND)
         spo2Tracker?.setEventListener(listener)
         _uiState.update { it.copy(measuring = true, measurementCompleted = false) }
 

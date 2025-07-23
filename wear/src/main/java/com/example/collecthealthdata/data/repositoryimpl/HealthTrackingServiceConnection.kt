@@ -37,7 +37,7 @@ private const val TAG = "HealthTrackingServiceConnection"
 @ExperimentalCoroutinesApi
 class HealthTrackingServiceConnection @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope      //hilt module에서 scope 주입, main scope로
 ) {
     private var connected: Boolean = false
     private var healthTrackingService: HealthTrackingService? = null

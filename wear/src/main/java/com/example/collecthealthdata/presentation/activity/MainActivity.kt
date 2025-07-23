@@ -32,7 +32,6 @@ private const val SENSOR_PERMISSION_REQUEST_CODE = 100
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     private val viewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,7 +106,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+    }
 
+    override fun onResume(){
+        super.onResume()
         if (!hasSensorPermissions()) {
             requestSensorPermissions()
         } else {
