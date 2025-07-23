@@ -99,23 +99,6 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
     private var currentIBI = ArrayList<Int>(4)
 
 
-    override fun onCleared() {
-        super.onCleared()
-        stopTracking()
-    }
-    fun stopTracking() {
-        stopTrackingUseCase() //이건 listener unset 밖에 없다
-        trackingJob?.cancel() // 센서 수집 Job 취소
-        savingJob?.cancel()   // 저장 루프 Job도 취소
-        _trackingState.value = TrackingState(
-            trackingRunning = false,
-            trackingError = false,
-            valueHR = "-",
-            valueIBI = arrayListOf(),
-            message = ""
-        )
-        uploadAfterAllSaved()
-    }
 
     fun setUpTracking() {
         Log.i(TAG, "setUpTracking()")
@@ -166,21 +149,9 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
         trackingJob?.cancel()
         trackingJob = viewModelScope.launch(Dispatchers.IO) {
+            Log.d("trackingJob", "launched()")
             try {
-                // 1️⃣ HealthTrackingService 연결될 때까지 suspend 대기
-                val connected = healthTrackingServiceConnection.awaitConnected()
-
-                if (!connected) {
-                    Log.e(TAG, "Failed to connect to HealthTrackingService")
-                    _trackingState.value = TrackingState(
-                        trackingRunning = false,
-                        trackingError = true,
-                        valueHR = "-",
-                        valueIBI = arrayListOf(),
-                        message = "Health Tracking Service connection failed"
-                    )
-                    return@launch
-                }
+                //HealthTracking Service 는 setUpTracking 에서 Connected
 
                 Log.i(TAG, "HealthTrackingService connected. Starting sensor tracking...")
 
@@ -274,8 +245,7 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
 
     private suspend fun processExerciseUpdate(trackedData: TrackedData) {
-        //TODO: 여기가 실제 TrackedData처리되는 구간!! 여기서 데이터베이스 넣는 로직
-        //TrackedData- Domain.Model.TrackedData
+        //Hr, IBI 처리 로직
         val hr = trackedData.hr
         val ibi = trackedData.ibi
         Log.i(TAG, "last HeartRate: $hr, last IBI: $ibi")
@@ -379,20 +349,32 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
     }
 
 
+    fun stopTracking() {
+        stopTrackingUseCase() //이건 listener unset 밖에 없다 -> awaitClose로 이미 unsetted 되어야 되는데 안 되고 있어서 명시적으로 unset
+        trackingJob?.cancel() // 센서 수집 Job 취소
+        savingJob?.cancel()   // 저장 루프 Job도 취소
+        _trackingState.value = TrackingState(
+            trackingRunning = false,
+            trackingError = false,
+            valueHR = "-",
+            valueIBI = arrayListOf(),
+            message = ""
+        )
+        uploadAfterAllSaved()
+    }
+
+
+
 
     private fun saveData(entity: TrackedDataEntity) {
         viewModelScope.launch {
             insertTrackedDataUseCase(entity)
-            Log.d(TAG, "Saved one measurement.")
+            Log.d(TAG, "Saved measurement.")
         }
     }
 
     private fun uploadAfterAllSaved() {
         viewModelScope.launch {
-            sendMessageUseCase() // 자동 전송
-            _messageSentToast.emit(true)
-            Log.d(TAG, "All 6 measurements saved and uploaded.")
-
             startTime = LocalDateTime.now() // 새 추적 세션 시작 시간 초기화
             _stopSignal.value = true
 

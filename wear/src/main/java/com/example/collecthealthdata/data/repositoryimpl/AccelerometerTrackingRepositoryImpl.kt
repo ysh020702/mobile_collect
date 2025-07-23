@@ -77,12 +77,12 @@ class AccelerometerTrackingRepositoryImpl  @Inject constructor(
         }
 
         accelTracker = healthTrackingService!!.getHealthTracker(trackingType)
+        Log.d(TAG,"Accel listener set")
         setListener(listener)
 
 
         awaitClose {
-            accelTracker?.unsetEventListener()
-            listenerSet = false
+            unsetListener()
         }
     }
 
@@ -92,6 +92,16 @@ class AccelerometerTrackingRepositoryImpl  @Inject constructor(
             listenerSet = true
             Log.d(TAG, "Requested trackerType = $trackingType")
         }
+    }
+
+    private fun unsetListener(){
+        accelTracker?.unsetEventListener()
+        listenerSet = false
+    }
+
+    override fun stopTracking() {
+        Log.d(TAG, "Accel listener unset")
+        unsetListener()
     }
 
     override fun hasCapabilities(): Boolean {

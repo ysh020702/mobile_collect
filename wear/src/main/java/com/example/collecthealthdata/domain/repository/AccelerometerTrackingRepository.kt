@@ -6,4 +6,5 @@ import kotlinx.coroutines.flow.Flow
 interface AccelerometerTrackingRepository {
     suspend fun track(): Flow<AccelTrackerMessage>
     fun hasCapabilities(): Boolean
+    fun stopTracking()
 }

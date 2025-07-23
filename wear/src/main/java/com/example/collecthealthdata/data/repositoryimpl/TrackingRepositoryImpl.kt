@@ -152,12 +152,12 @@ class TrackingRepositoryImpl
         setListener(updateListener)
 
         awaitClose {
-            Log.i(TAG, "Tracking flow awaitClose()")
             stopTracking()
         }
     }
 
     override fun stopTracking() {
+        Log.d(TAG, "heartRate listener unset")
         unsetListener()
     }
 
