@@ -31,7 +31,7 @@ fun SpO2Screen(
     val progress = remember { Animatable(0f) }
 
     // Constants (Java 코드의 Duration, Tick 대응)
-    val MEASUREMENT_DURATION = 35000L  // 35초
+    val MEASUREMENT_DURATION = 25000L  // 25초
     val MEASUREMENT_TICK = 100L        // 0.1초
 
     // 측정 시작 시 타이머 효과 (Progress 증가)

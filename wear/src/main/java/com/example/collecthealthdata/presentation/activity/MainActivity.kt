@@ -95,9 +95,10 @@ class MainActivity : ComponentActivity() {
 
                     composable("spo2") {
                         val spo2ViewModel: SpO2ViewModel = hiltViewModel()
-                        SpO2Screen(viewModel = spo2ViewModel) {
-                            navController.popBackStack()
-                        }
+                        SpO2Screen(
+                            viewModel = spo2ViewModel,
+                            onBack = navController::popBackStack
+                        )
                     }
                 }
             }

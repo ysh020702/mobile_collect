@@ -29,7 +29,6 @@ class MakeConnectionToHealthTrackingServiceUseCase @OptIn(ExperimentalCoroutines
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(): Flow<ConnectionMessage> = healthTrackingServiceConnection.connectionFlow
-
 }
 
 
