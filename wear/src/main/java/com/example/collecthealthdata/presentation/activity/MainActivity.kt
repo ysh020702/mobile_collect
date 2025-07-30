@@ -81,6 +81,10 @@ class MainActivity : ComponentActivity() {
                                 viewModel.stopTracking()
                                 Log.i(TAG, "stopTracking()")
                             },
+                            onSignal = {
+                                viewModel.sendStopSignal()
+                                Log.i(TAG, "sendStopSignal()")
+                            },
                             onSend = {
                                 viewModel.sendMessage()
                                 Log.i(TAG, "sendMessage()")

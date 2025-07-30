@@ -93,6 +93,7 @@ class HealthTrackingServiceConnection @Inject constructor(
     }
 
     suspend fun awaitConnected(): Boolean {
+        Log.d(TAG, "awaitConnected()")
         return connectionFlow.firstOrNull { it is ConnectionMessage.ConnectionSuccessMessage } != null
     }
 }

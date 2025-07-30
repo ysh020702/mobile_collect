@@ -90,7 +90,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideApplicationCoroutineScope(): CoroutineScope {
-        return CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        return CoroutineScope(SupervisorJob() + Dispatchers.Main)
     }
 
     @Provides

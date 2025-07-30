@@ -39,7 +39,7 @@ import kotlin.toString
 
 private const val TAG = "MainViewModel"
 private const val INTERVAL_SEC = 2_000L
-private const val MAX_REPEAT = 450  //15분
+private const val MAX_REPEAT = 450 //15분
 
 @HiltViewModel
 class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
@@ -99,23 +99,6 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
     private var currentIBI = ArrayList<Int>(4)
 
 
-    override fun onCleared() {
-        super.onCleared()
-        stopTracking()
-    }
-    fun stopTracking() {
-        stopTrackingUseCase() //이건 listener unset 밖에 없다
-        trackingJob?.cancel() // 센서 수집 Job 취소
-        savingJob?.cancel()   // 저장 루프 Job도 취소
-        _trackingState.value = TrackingState(
-            trackingRunning = false,
-            trackingError = false,
-            valueHR = "-",
-            valueIBI = arrayListOf(),
-            message = ""
-        )
-        uploadAfterAllSaved()
-    }
 
     fun setUpTracking() {
         Log.i(TAG, "setUpTracking()")
@@ -160,27 +143,15 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun startTracking(vapingState: Boolean, cravingLevelState: Int) {
-
+        startSavingLoop()
         isConnecting = true
         Log.i(TAG, "startTracking()")
 
         trackingJob?.cancel()
         trackingJob = viewModelScope.launch(Dispatchers.IO) {
+            Log.d("trackingJob", "launched()")
             try {
-                // 1️⃣ HealthTrackingService 연결될 때까지 suspend 대기
-                val connected = healthTrackingServiceConnection.awaitConnected()
-
-                if (!connected) {
-                    Log.e(TAG, "Failed to connect to HealthTrackingService")
-                    _trackingState.value = TrackingState(
-                        trackingRunning = false,
-                        trackingError = true,
-                        valueHR = "-",
-                        valueIBI = arrayListOf(),
-                        message = "Health Tracking Service connection failed"
-                    )
-                    return@launch
-                }
+                //HealthTracking Service 는 setUpTracking 에서 Connected
 
                 Log.i(TAG, "HealthTrackingService connected. Starting sensor tracking...")
 
@@ -195,8 +166,6 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                     )
                     return@launch
                 }
-
-                startSavingLoop()
 
                 // 3️⃣ 가속도 센서 시작
                 launch(SupervisorJob() + Dispatchers.Default) {
@@ -263,8 +232,6 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
                         }
                     }
                 }
-
-
                 _trackingState.value = _trackingState.value.copy(trackingRunning = true)
             } finally {
                 isConnecting = false
@@ -274,8 +241,7 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
 
     private suspend fun processExerciseUpdate(trackedData: TrackedData) {
-        //TODO: 여기가 실제 TrackedData처리되는 구간!! 여기서 데이터베이스 넣는 로직
-        //TrackedData- Domain.Model.TrackedData
+        //Hr, IBI 처리 로직
         val hr = trackedData.hr
         val ibi = trackedData.ibi
         Log.i(TAG, "last HeartRate: $hr, last IBI: $ibi")
@@ -303,96 +269,112 @@ class MainViewModel @OptIn(ExperimentalCoroutinesApi::class)
 
     private var savingJob: Job? = null
     private fun startSavingLoop() {
-        
+        Log.d(TAG, "startSavingLoop() called")
+
         savingJob?.cancel() // 이미 실행 중인 루프가 있으면 취소
         savingJob = viewModelScope.launch(Dispatchers.IO) {
+
             var skipped = 0
-            repeat(MAX_REPEAT) { count ->
-                delay(INTERVAL_SEC) // 측정 대기
+            try{
+                repeat(MAX_REPEAT) { count ->
+                    delay(INTERVAL_SEC) // 측정 대기
 
-                if (accelList.isEmpty() || hrList.isEmpty() ) {
-                    
-                    skipped += 1
-                    if(skipped > 50) {
-                        //한 데이터가 계속 측정되지 않고 있는 경우, 초기화
-                        listMutex.withLock {
-                            hrList.clear()
-                            ibiList.clear()
-                            accelList.clear()
+                    if (accelList.isEmpty() || hrList.isEmpty() ) {
+
+                        skipped += 1
+                        if(skipped > 20) {
+                            //한 데이터가 계속 측정되지 않고 있는 경우, 초기화
+                            listMutex.withLock {
+                                hrList.clear()
+                                ibiList.clear()
+                                accelList.clear()
+                            }
+                            startTime = LocalDateTime.now() // 시작시간 초기화
+                            Log.w(TAG, "${count + 1}번째 저장 스킵 및 데이터 초기화. 데이터 누락 지속 발생")
+                        }else{
+                            Log.w(TAG, "${count + 1}번째 저장 스킵: 데이터 없음")
                         }
-                        startTime = LocalDateTime.now() // 시작시간 초기화
-                        Log.w(TAG, "${count + 1}번째 저장 스킵 및 데이터 초기화. 데이터 누락 지속 발생")
-                    }else{
-                        Log.w(TAG, "${count + 1}번째 저장 스킵: 데이터 없음")
+
+
+                        return@repeat
                     }
-                    
-                    
-                    return@repeat
-                }
-                skipped = 0
-                // 저장할 데이터가 있으므로 시간 갱신
-                if (startTime == null) {
-                    startTime = LocalDateTime.now() // 첫 저장 시작시간
-                }
-                endTime = LocalDateTime.now() // 마지막 저장 끝시간
+                    skipped = 0
+                    // 저장할 데이터가 있으므로 시간 갱신
+                    if (startTime == null) {
+                        startTime = LocalDateTime.now() // 첫 저장 시작시간
+                    }
+                    endTime = LocalDateTime.now() // 마지막 저장 끝시간
 
-                val (spo2MeasuredAt, spo2Value) = resultStore.loadSpO2()
+                    val (spo2MeasuredAt, spo2Value) = resultStore.loadSpO2()
 
-                val accelDataString: String
-                val hrDataString: String
-                val ibiDataString: String
+                    val accelDataString: String
+                    val hrDataString: String
+                    val ibiDataString: String
 
-                listMutex.withLock {
-                    accelDataString = accelList.joinToString(";") { "${it.x},${it.y},${it.z}" }
-                    hrDataString = hrList.joinToString(",")
-                    ibiDataString = ibiList.joinToString(",")
-                }
+                    listMutex.withLock {
+                        accelDataString = accelList.joinToString(";") { "${it.x},${it.y},${it.z}" }
+                        hrDataString = hrList.joinToString(",")
+                        ibiDataString = ibiList.joinToString(",")
+                    }
 
-                val trackedEntity = TrackedDataEntity(
-                    vaping = vaping,
-                    cravingLevel = cravingLevel,
-                    hrDataString = hrDataString,
-                    ibiDataString = ibiDataString,
-                    accelDataString = accelDataString,
-                    spo2Value = spo2Value,
-                    spo2MeasuredAt = spo2MeasuredAt,
-                    recentActivityLevel = recentActivityLevel,
-                    startTime = startTime.toString(),
-                    endTime = endTime.toString()
-                )
+                    val trackedEntity = TrackedDataEntity(
+                        vaping = vaping,
+                        cravingLevel = cravingLevel,
+                        hrDataString = hrDataString,
+                        ibiDataString = ibiDataString,
+                        accelDataString = accelDataString,
+                        spo2Value = spo2Value,
+                        spo2MeasuredAt = spo2MeasuredAt,
+                        recentActivityLevel = recentActivityLevel,
+                        startTime = startTime.toString(),
+                        endTime = endTime.toString()
+                    )
 
-                saveData(trackedEntity)
-                Log.d(TAG, "${count + 1}번째 저장 완료")
+                    saveData(trackedEntity)
+                    Log.d(TAG, "${count + 1}번째 저장 완료")
 
-                // 누적 리스트 초기화
-                listMutex.withLock {
-                    hrList.clear()
-                    ibiList.clear()
-                    accelList.clear()
+                    // 누적 리스트 초기화
+                    listMutex.withLock {
+                        hrList.clear()
+                        ibiList.clear()
+                        accelList.clear()
+                    }
                 }
             }
-
-
-            Log.d(TAG, "자동 업로드 트리거 완료")
-            stopTracking()
+            finally{
+                Log.d(TAG, "Saving loop completed or cancelled → stopSignal 전송")
+                sendStopSignal()
+            }
         }
     }
 
+
+    fun stopTracking() {
+        Log.d(TAG, "StopTracking")
+        stopTrackingUseCase() //이건 listener unset 밖에 없다 -> awaitClose로 이미 unsetted 되어야 되는데 안 되고 있어서 명시적으로 unset
+        trackingJob?.cancel() // 센서 수집 Job 취소
+        savingJob?.cancel()   // 저장 루프 Job도 취소
+        _trackingState.value = TrackingState(
+            trackingRunning = false,
+            trackingError = false,
+            valueHR = "-",
+            valueIBI = arrayListOf(),
+            message = ""
+        )
+        sendMessage()
+    }
 
 
     private fun saveData(entity: TrackedDataEntity) {
         viewModelScope.launch {
             insertTrackedDataUseCase(entity)
-            Log.d(TAG, "Saved one measurement.")
+            Log.d(TAG, "Saved measurement.")
         }
     }
 
-    private fun uploadAfterAllSaved() {
+    fun sendStopSignal() {
+        Log.d(TAG, "sendStopSignal()")
         viewModelScope.launch {
-            sendMessageUseCase() // 자동 전송
-            _messageSentToast.emit(true)
-            Log.d(TAG, "All 6 measurements saved and uploaded.")
-
             startTime = LocalDateTime.now() // 새 추적 세션 시작 시간 초기화
             _stopSignal.value = true
 

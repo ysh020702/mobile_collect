@@ -32,6 +32,7 @@ fun MainScreen(
     valueIBI: ArrayList<Int>,
     onStart: (Boolean, Int) -> Unit,
     onStop: () -> Unit,
+    onSignal: () -> Unit,
     onSend: () -> Unit,
     onSpO2Click: () -> Unit,
     stopSignal: Boolean
@@ -42,6 +43,7 @@ fun MainScreen(
 
     LaunchedEffect(stopSignal) {
         if (stopSignal) {
+            Log.d("ScreenMain", "onStop called $stopSignal")
             onStop()
         }
     }
@@ -75,7 +77,7 @@ fun MainScreen(
 
             if (trackingRunning) {
                 item {
-                    MenuItem(text = "측정 중지", onClick = onStop)
+                    MenuItem(text = "측정 중지", onClick = onSignal)
                 }
                 item { Divider(color = dividerColor, thickness = 1.dp) }
             } else {
