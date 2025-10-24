@@ -28,7 +28,6 @@ class DataListenerService : WearableListenerService() {
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Service created")
-
     }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
